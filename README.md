@@ -9,7 +9,26 @@
 
 > 把游戏角色编译成**可审阅、可注入、可验证**的人格文档。
 
-`character-persona-forge` 是一个 Agent Skill：为《原神》《崩坏：星穹铁道》《绝区零》《鸣潮》角色生成三份可移植文档——`soul.md`、`style.md`、`sources.md`。它不是让模型“凭印象写角色卡”，而是把**官方来源、证据分级、人格边界、运行时注入、自检测试**串成一条可审计的流水线。
+`character-persona-forge` 是一个 Agent Skill：把**官方来源、证据分级、人格边界、运行时注入、自检测试**串成一条可审计的流水线，生成三份可移植文档——`soul.md`、`style.md`、`sources.md`。
+
+> **当前内置支持范围：** 《原神》《崩坏：星穹铁道》《绝区零》《鸣潮》。
+> 这不是能力上限：来源系统按游戏拆分，新增游戏只需增加 `references/sources/<game>.md` 与注册项，核心流程、模板和校验器都可以复用。
+
+---
+
+## 目录
+
+- [为什么不是普通角色卡](#为什么不是普通角色卡)
+- [产出](#产出)
+- [当前支持的游戏](#当前支持的游戏)
+- [支持的宿主](#支持的宿主)
+- [使用流程](#使用流程)
+- [验证与自检](#验证与自检)
+- [质量门禁](#质量门禁)
+- [仓库架构](#仓库架构)
+- [新增游戏](#新增游戏)
+- [适合与不适合](#适合与不适合)
+- [许可证与声明](#许可证与声明)
 
 ---
 
@@ -21,7 +40,7 @@
 | 角色聊几轮就变回助手 | 提供 CORE 注入、身份锚、后置指令与 OOC 状态机 |
 | 只写“像不像” | 12 个 OOC 探针 + 10 个对抗性探针 + 冷启动测试 |
 | 无法判断什么时候可以交付 | 预算、矩阵、E 落点、引用配额、身份安全都有硬门禁 |
-| 换宿主就失效 | 同一套文件可被 Claude Code、Codex、Trae、Qoder、WorkBuddy、DSH 等宿主读取 |
+| 换宿主就失效 | 同一套文件可被 Claude Code、Codex、Trae、Qoder、DSH 等宿主读取 |
 
 ---
 
@@ -34,42 +53,74 @@ personas/<游戏>/<角色>/
 └── sources.md   # 证据档案：来源、原文、推断、冲突、覆盖矩阵、自检报告
 ```
 
-`soul.md` 与 `style.md` 都分为 **CORE** 与 **APPENDIX**。CORE 可单独注入，APPENDIX 保存阶段细节、扩展语料和证据索引；`sources.md` 不参与注入，只用于审计和后续更新。
+`soul.md` 与 `style.md` 都分为 **CORE** 与 **APPENDIX**。CORE 可单独注入，APPENDIX 保存阶段细节、扩展语料和证据索引；`sources.md` 不参与注入，只用于审计与后续更新。
 
 ---
 
-## 核心能力
+## 当前支持的游戏
 
-- **官方来源优先**：S1 官方一手 > S2 官方平台 > S3 社区 Wiki > S4 考据/二创；缺口必须标注“社区转录”。
-- **两阶段写入**：先冻结来源表与证据 ID，再写正文，避免“先写正文再补来源”的返工。
-- **CORE 可移植**：核心区自包含，附录按需加载，控制上下文成本。
-- **运行时集成**：三层注入模型、OOC 状态机、51 个宿主映射、输出守卫。
-- **工具链**：分章预算、E 落点对比、§7 矩阵 stub、探针运行包、结构校验器。
-- **双语触发**：支持中文与英文角色名、游戏名触发。
+| 游戏 | 当前状态 | 来源档案 |
+|---|---|---|
+| 原神 / Genshin Impact | 支持 | `references/sources/genshin.md` |
+| 崩坏：星穹铁道 / Honkai: Star Rail | 支持 | `references/sources/hsr.md` |
+| 绝区零 / Zenless Zone Zero | 支持 | `references/sources/zzz.md` |
+| 鸣潮 / Wuthering Waves | 支持 | `references/sources/wuwa.md` |
+
+新增游戏不需要改核心人格方法论：增加来源档案、更新注册表和校验器常量即可。详见[新增游戏](#新增游戏)。
+
+---
+
+## 支持的宿主
+
+以下按主流 Agent Skills / 角色注入方式列出，完整 51 个宿主映射见 `references/runtime-integration.md` §6。
+
+| 宿主 | 接入方式 |
+|---|---|
+| Claude Code | 项目/全局 `.claude/skills/` |
+| OpenAI Codex CLI | `.agents/skills/` 或项目级 `.agents/skills/` |
+| GitHub Copilot | `.github/skills/` |
+| Cursor | 项目 Rules / Skills（随版本） |
+| Windsurf | Rules / Skills（随版本） |
+| Cline | Rules / Skills（随版本） |
+| Continue | Rules / Skills（随版本） |
+| Gemini CLI | `.gemini/skills/` |
+| Qoder | `.qoder/skills/` |
+| Trae CN | `~/.trae-cn/skills/` 或项目 `.trae/skills/` |
+| Trae 国际版 | `~/.trae/skills/` 或项目 `.trae/skills/` |
+| DeepSeek Harness (DSH) | `~/.dsh/skills/` 或项目 `.dsh/skills/` |
+| WorkBuddy | `~/.workbuddy/skills/` |
+| OpenClaw | `~/.openclaw/skills/` |
+| Hermes Agent | `SOUL.md` / identity slot |
+| SillyTavern | `description` / `system_prompt` / `post_history_instructions` |
+| Aider | `CONVENTIONS.md` 或把 CORE 直接加入会话 |
+| OpenCode | `.opencode/skills/` |
+| Goose | `.goosehints` / Recipes |
+| Roo Code | `.roo/rules/` |
+| Kilo Code | `.kilocode/rules/` |
+| Amazon Q Developer | `.amazonq/rules/` |
+| Zed | `.rules` / Agent Instructions |
+| JetBrains AI | `.aiassistant/rules/` |
+| Jan / LM Studio / Msty | 系统提示词中粘贴身份指令 + CORE |
+
+> 路径会随宿主版本变化；安装时以宿主文档和 `references/runtime-integration.md` 为准。
 
 ---
 
 ## 安装
 
-把整个 `character-persona-forge/` 目录复制到宿主的 skills 目录。
+把整个仓库（或解压后的 `character-persona-forge/` 目录）复制到宿主的 skills / rules 目录。
 
-| 宿主 | 常见全局路径 | 项目级路径 |
-|---|---|---|
-| Claude Code | `~/.claude/skills/character-persona-forge/` | `.claude/skills/character-persona-forge/` |
-| Codex / 通用 Agent Skills | `~/.agents/skills/character-persona-forge/` | `.agents/skills/character-persona-forge/` |
-| DeepSeek Harness (DSH) | `~/.dsh/skills/character-persona-forge/` | `.dsh/skills/character-persona-forge/` |
-| Trae CN | `~/.trae-cn/skills/character-persona-forge/` | `.trae/skills/character-persona-forge/` |
-| Trae 国际版 | `~/.trae/skills/character-persona-forge/` | `.trae/skills/character-persona-forge/` |
-| Qoder | `~/.qoder/skills/character-persona-forge/` | `.qoder/skills/character-persona-forge/` |
-| WorkBuddy | `~/.workbuddy/skills/character-persona-forge/` | 按宿主项目约定 |
+```bash
+git clone https://github.com/<你的用户名>/character-persona-forge.git
+```
 
-安装后重启或重新加载宿主，然后说：
+然后按上表的宿主路径复制。安装后重启或重新加载宿主，使用：
 
 ```text
 使用 character-persona-forge，制作《原神》角色纳西妲的人格文档
 ```
 
-也可以直接点名：
+或：
 
 ```text
 Use Skill: character-persona-forge
@@ -83,7 +134,7 @@ Use Skill: character-persona-forge
 2. **取证**：先官方、后社区；边查边写 `sources.md`。
 3. **冻结 ID**：来源表与证据表先定稿，正文只引用已定义 ID。
 4. **写正文**：先写 `soul.md` / `style.md` 的 CORE，再补附录。
-5. **自检**：跑预算、E 落点、矩阵、结构校验、12+10 探针。
+5. **自检**：预算、E 落点、矩阵、结构校验、12+10 探针。
 6. **交付**：报告路径、来源数、缺口、探针分数，并附使用方法。
 
 ---
@@ -127,22 +178,56 @@ python scripts/check_output.py reply.md
 
 ---
 
-## 仓库结构
+## 仓库架构
+
+这是一个**单 skill 仓库**：仓库根目录就是 skill 目录；如果未来扩展为多 skill 库，可把本目录移动到 `skills/character-persona-forge/`，其余文件保持在仓库根。
 
 ```text
 .
-├── SKILL.md                  # 技能入口
+├── SKILL.md                  # Skill 入口
 ├── README.md                 # 中文说明（默认）
 ├── README.en.md              # English README
 ├── CHANGELOG.md
 ├── LICENSE                   # CC BY-NC-SA 4.0
-├── references/               # 流程、确认、来源政策、评分、运行时集成
+├── AGENTS.md                 # 给 coding agent 的仓库说明
+├── CONTRIBUTING.md
+├── SECURITY.md
+├── .github/workflows/
+│   └── selftest.yml          # CI：Python 3.9/3.12，Linux/Windows
+├── references/
+│   ├── confirmation.md
+│   ├── workflow.md
+│   ├── source-policy.md
+│   ├── quality-rubric.md
+│   ├── runtime-integration.md
+│   └── sources/              # 按游戏拆分的来源档案
 ├── assets/
-│   ├── templates/            # soul/style/sources 模板（standard + quick）
-│   └── examples/             # 标准档 / quick 档参考样例
-├── scripts/                  # 校验器、生成辅助、探针 harness
+│   ├── templates/            # standard + quick 模板
+│   └── examples/             # standard / quick 参考样例
+├── scripts/
+│   ├── validate_persona.py
+│   ├── persona_tools.py
+│   ├── probe_harness.py
+│   ├── check_output.py
+│   └── selftest.py
 └── tests/                    # 反向回归 fixture
 ```
+
+设计与校验遵循 Agent Skills 的渐进披露：`SKILL.md` 只保留入口和硬规则，长流程、来源政策、评分、宿主映射放在 `references/`，模板与示例放在 `assets/`，可执行检查放在 `scripts/`。
+
+---
+
+## 新增游戏
+
+当前只内置四款游戏，但架构按“可扩展来源档案”设计：
+
+1. 新增 `references/sources/<game>.md`：官方入口、缺口、检索式、社区补缺、SPA/反爬备注。
+2. 更新 `references/source-registry.md` 索引。
+3. 更新 `SKILL.md` 的游戏输入表与主角称号。
+4. 更新 `scripts/validate_persona.py` 的 `ALLOWED_GAMES`、`EXPECTED_USER`。
+5. 更新 README 的“当前支持的游戏”。
+6. 如术语/主角称号不同，补一个 fixture 或示例。
+7. 运行 `python scripts/selftest.py`。
 
 ---
 
@@ -185,4 +270,4 @@ python scripts/check_output.py reply.md
 python scripts/selftest.py
 ```
 
-新增规则时请同时补一个反例或回归检查，避免“文档写了、脚本没查”。
+新增规则时请同时补一个反例或回归检查，避免“文档写了、脚本没查”。详见 [CONTRIBUTING.md](CONTRIBUTING.md) 与 [SECURITY.md](SECURITY.md)。

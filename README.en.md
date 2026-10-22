@@ -9,7 +9,26 @@
 
 > Compile a game character into **auditable, injectable, testable** persona documents.
 
-`character-persona-forge` is an Agent Skill for producing portable persona files for characters from Genshin Impact, Honkai: Star Rail, Zenless Zone Zero, and Wuthering Waves. Instead of “write a character card from memory”, it connects official sources, evidence grading, persona boundaries, runtime injection, and reproducible self-checks into one auditable pipeline.
+`character-persona-forge` is an Agent Skill that connects official sources, evidence grading, persona boundaries, runtime injection, and reproducible self-checks into one auditable pipeline. It produces three portable documents: `soul.md`, `style.md`, and `sources.md`.
+
+> **Currently supported in-box:** Genshin Impact, Honkai: Star Rail, Zenless Zone Zero, and Wuthering Waves.
+> This is not a hard capability limit. Source support is split by game; adding another game only requires `references/sources/<game>.md` plus registry entries. The core workflow, templates, and validator remain reusable.
+
+---
+
+## Contents
+
+- [Why Not Just a Character Card?](#why-not-just-a-character-card)
+- [Output](#output)
+- [Currently Supported Games](#currently-supported-games)
+- [Supported Hosts](#supported-hosts)
+- [Workflow](#workflow)
+- [Validation](#validation)
+- [Quality Gates](#quality-gates)
+- [Repository Architecture](#repository-architecture)
+- [Adding a Game](#adding-a-game)
+- [Good Fit / Not a Good Fit](#good-fit--not-a-good-fit)
+- [License and Notices](#license-and-notices)
 
 ---
 
@@ -21,7 +40,7 @@
 | The persona collapses back into an assistant after a few turns | CORE injection, identity anchors, post-history instructions, and an OOC state machine |
 | “Does it feel in character?” is the only test | 12 OOC probes + 10 adversarial probes + cold-start test |
 | No clear delivery gate | Budget, matrix, evidence landing, quote quotas, and identity safety are hard gates |
-| Tied to one host | The same files work in Claude Code, Codex, Trae, Qoder, WorkBuddy, DSH, and more |
+| Tied to one host | The same files work in Claude Code, Codex, Trae, Qoder, DSH, and other hosts |
 
 ---
 
@@ -38,32 +57,64 @@ personas/<game>/<character>/
 
 ---
 
-## Highlights
+## Currently Supported Games
 
-- **Official sources first**: S1 official first-party > S2 official platform > S3 community wiki > S4 analysis/fanwork. Gaps must be labeled as community transcripts.
-- **Two-phase writing**: freeze source/evidence IDs before writing the body, avoiding “write first, find sources later” rework.
-- **Portable CORE**: core sections are self-contained; appendices load only when needed.
-- **Runtime integration**: three-layer injection model, OOC state machine, 51 host mappings, output guard.
-- **Tooling**: per-section budget report, evidence-landing map, §7 matrix stub, probe harness, structure validator.
-- **Bilingual triggers**: Chinese and English game/character names are supported.
+| Game | Status | Source profile |
+|---|---|---|
+| Genshin Impact | Supported | `references/sources/genshin.md` |
+| Honkai: Star Rail | Supported | `references/sources/hsr.md` |
+| Zenless Zone Zero | Supported | `references/sources/zzz.md` |
+| Wuthering Waves | Supported | `references/sources/wuwa.md` |
+
+Adding a game does not require rewriting the persona methodology: add a source profile, update the registry and validator constants, and reuse the same templates. See [Adding a Game](#adding-a-game).
+
+---
+
+## Supported Hosts
+
+The list below covers mainstream Agent Skills / persona-injection hosts. The full 51-host mapping is in `references/runtime-integration.md` §6.
+
+| Host | Integration |
+|---|---|
+| Claude Code | Project/global `.claude/skills/` |
+| OpenAI Codex CLI | `.agents/skills/` |
+| GitHub Copilot | `.github/skills/` |
+| Cursor | Project Rules / Skills (version-dependent) |
+| Windsurf | Rules / Skills (version-dependent) |
+| Cline | Rules / Skills (version-dependent) |
+| Continue | Rules / Skills (version-dependent) |
+| Gemini CLI | `.gemini/skills/` |
+| Qoder | `.qoder/skills/` |
+| Trae CN | `~/.trae-cn/skills/` or project `.trae/skills/` |
+| Trae International | `~/.trae/skills/` or project `.trae/skills/` |
+| DeepSeek Harness (DSH) | `~/.dsh/skills/` or project `.dsh/skills/` |
+| WorkBuddy | `~/.workbuddy/skills/` |
+| OpenClaw | `~/.openclaw/skills/` |
+| Hermes Agent | `SOUL.md` / identity slot |
+| SillyTavern | `description` / `system_prompt` / `post_history_instructions` |
+| Aider | `CONVENTIONS.md` or paste CORE into the session |
+| OpenCode | `.opencode/skills/` |
+| Goose | `.goosehints` / Recipes |
+| Roo Code | `.roo/rules/` |
+| Kilo Code | `.kilocode/rules/` |
+| Amazon Q Developer | `.amazonq/rules/` |
+| Zed | `.rules` / Agent Instructions |
+| JetBrains AI | `.aiassistant/rules/` |
+| Jan / LM Studio / Msty | Paste identity instruction + CORE into the system prompt |
+
+> Paths vary by host version. Use the host documentation and `references/runtime-integration.md` as the source of truth.
 
 ---
 
 ## Install
 
-Copy the whole `character-persona-forge/` folder into your host's skills directory.
+Copy the whole repository (or the extracted `character-persona-forge/` folder) into your host's skills/rules directory.
 
-| Host | Common global path | Project-level path |
-|---|---|---|
-| Claude Code | `~/.claude/skills/character-persona-forge/` | `.claude/skills/character-persona-forge/` |
-| Codex / shared Agent Skills | `~/.agents/skills/character-persona-forge/` | `.agents/skills/character-persona-forge/` |
-| DeepSeek Harness (DSH) | `~/.dsh/skills/character-persona-forge/` | `.dsh/skills/character-persona-forge/` |
-| Trae CN | `~/.trae-cn/skills/character-persona-forge/` | `.trae/skills/character-persona-forge/` |
-| Trae International | `~/.trae/skills/character-persona-forge/` | `.trae/skills/character-persona-forge/` |
-| Qoder | `~/.qoder/skills/character-persona-forge/` | `.qoder/skills/character-persona-forge/` |
-| WorkBuddy | `~/.workbuddy/skills/character-persona-forge/` | Follow host conventions |
+```bash
+git clone https://github.com/<your-name>/character-persona-forge.git
+```
 
-Restart or reload the host, then ask:
+Then use the path from the table above. Restart or reload the host and invoke:
 
 ```text
 Use Skill: character-persona-forge
@@ -122,7 +173,9 @@ python scripts/check_output.py reply.md
 
 ---
 
-## Repository Layout
+## Repository Architecture
+
+This is a **single-skill repository**: the repository root is the skill folder. If it later grows into a multi-skill library, move this folder to `skills/character-persona-forge/` and keep the repository-level files at the root.
 
 ```text
 .
@@ -131,13 +184,45 @@ python scripts/check_output.py reply.md
 ├── README.en.md              # English README
 ├── CHANGELOG.md
 ├── LICENSE                   # CC BY-NC-SA 4.0
-├── references/               # Workflow, confirmation, source policy, rubric, runtime integration
+├── AGENTS.md                 # Repository guide for coding agents
+├── CONTRIBUTING.md
+├── SECURITY.md
+├── .github/workflows/
+│   └── selftest.yml          # CI: Python 3.9/3.12, Linux/Windows
+├── references/
+│   ├── confirmation.md
+│   ├── workflow.md
+│   ├── source-policy.md
+│   ├── quality-rubric.md
+│   ├── runtime-integration.md
+│   └── sources/              # Per-game source profiles
 ├── assets/
-│   ├── templates/            # soul/style/sources templates (standard + quick)
-│   └── examples/             # Standard/quick reference examples
-├── scripts/                  # Validator, drafting helpers, probe harness
+│   ├── templates/            # standard + quick templates
+│   └── examples/             # standard / quick examples
+├── scripts/
+│   ├── validate_persona.py
+│   ├── persona_tools.py
+│   ├── probe_harness.py
+│   ├── check_output.py
+│   └── selftest.py
 └── tests/                    # Negative regression fixtures
 ```
+
+The layout follows Agent Skills progressive disclosure: `SKILL.md` keeps only the entrypoint and hard rules; long workflows, source policy, scoring, and host mappings live in `references/`; templates/examples live in `assets/`; deterministic checks live in `scripts/`.
+
+---
+
+## Adding a Game
+
+Only four games are built in today, but the source architecture is extensible:
+
+1. Add `references/sources/<game>.md`: official entries, gaps, search patterns, community fallbacks, SPA/anti-bot notes.
+2. Update `references/source-registry.md`.
+3. Update the game input table in `SKILL.md` and the fixed protagonist title.
+4. Update `ALLOWED_GAMES` and `EXPECTED_USER` in `scripts/validate_persona.py`.
+5. Update the "Currently Supported Games" table in both READMEs.
+6. Add a fixture or example if the new game has different terminology.
+7. Run `python scripts/selftest.py`.
 
 ---
 
@@ -180,4 +265,4 @@ Issues and PRs are welcome. Before submitting, run:
 python scripts/selftest.py
 ```
 
-When adding a rule, add a negative fixture or regression check as well; “documented but unenforced” is treated as a bug.
+When adding a rule, add a negative fixture or regression check as well; “documented but unenforced” is treated as a bug. See [CONTRIBUTING.md](CONTRIBUTING.md) and [SECURITY.md](SECURITY.md).

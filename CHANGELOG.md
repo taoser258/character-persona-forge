@@ -10,6 +10,8 @@
 - 原神来源笔记补充：B站官方投稿常无字幕、BWIKI 用 `curl.exe` + `action=raw`、语音页常为 `<角色名>语音` 独立页。
 - selftest 扩到 23/23，新增 `probe_out_dir`。
 - 新增中文优先的双语 README（`README.md` / `README.en.md`）；许可证从 MIT 切换为 **CC BY-NC-SA 4.0**。
+- README 明确“当前内置四款游戏、来源架构可扩展”，补充 25 个主流宿主接入方式和正式仓库架构。
+- 新增 `AGENTS.md`、`CONTRIBUTING.md`、`SECURITY.md`、`.github/workflows/selftest.yml`；单 skill 仓库采用根目录即 skill 的布局。
 
 ## 1.5.0 — 2026-10-22
 

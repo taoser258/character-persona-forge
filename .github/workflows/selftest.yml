@@ -1,0 +1,26 @@
+name: selftest
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    name: Python ${{ matrix.python-version }} on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        python-version: ["3.9", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Run selftest
+        run: python -X utf8 scripts/selftest.py
+      - name: Validate standard example
+        run: python -X utf8 scripts/validate_persona.py assets/examples/standard/qingxiao --strict --explain
+      - name: Validate quick example
+        run: python -X utf8 scripts/validate_persona.py assets/examples/quick/qingxiao --strict --explain
