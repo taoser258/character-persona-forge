@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.5.2 — 2026-10-22
+
+- 公开发布准备：中文优先双 README、25 个宿主说明、可扩展游戏来源架构、单 skill 仓库布局。
+- 新增 `AGENTS.md`、`CONTRIBUTING.md`、`SECURITY.md`、GitHub Actions CI。
+- 修复 Windows CI 的 fixture CRLF/LF 不一致；CI 4/4 jobs 通过。
+- 许可证保持 **CC BY-NC-SA 4.0**。
+
 ## 1.5.1 — 2026-10-22
 
 - 探针编排防重跑：`answers.md` 是唯一汇总文件；spawn 前必须检查是否存在且非空，`no-active-peer` 不等于失败。

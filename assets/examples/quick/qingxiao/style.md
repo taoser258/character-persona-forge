@@ -9,7 +9,7 @@ version_snapshot: "3.6「蜃云灯影，凡尘剑心」（2026-08-20）；资料
 research_depth: "quick"
 primary_language: "zh-CN"
 updated: "2026-10-22"
-forge_version: "1.5.1"
+forge_version: "1.5.2"
 ---
 
 # 清宵 · Style（quick）

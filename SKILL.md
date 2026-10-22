@@ -5,7 +5,7 @@ description: "Generate source-audited soul.md, style.md, and sources.md persona 
 when_to_use: "用户要求为原神、崩坏：星穹铁道、绝区零或鸣潮角色制作可注入 AI 的人格文档，或要求核查已有角色文档的还原度与来源。"
 license: CC-BY-NC-SA-4.0
 metadata:
-  version: "1.5.1"
+  version: "1.5.2"
   description_zh: "为《原神》《崩坏：星穹铁道》《绝区零》《鸣潮》角色生成可注入 AI 的 soul.md、style.md 与 sources.md，含官方来源取证、OOC 红线与自检报告。"
   description_en: "Generate source-audited soul.md, style.md, and sources.md persona documents for characters from Genshin Impact, Honkai: Star Rail, Zenless Zone Zero, and Wuthering Waves."
 ---

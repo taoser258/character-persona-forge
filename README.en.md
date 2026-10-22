@@ -2,7 +2,7 @@
 
 **English** | [简体中文](README.md)
 
-[![Version](https://img.shields.io/badge/version-1.5.1-blue.svg)](#)
+[![Version](https://img.shields.io/badge/version-1.5.2-blue.svg)](#)
 [![License: CC BY-NC-SA 4.0](https://img.shields.io/badge/License-CC%20BY--NC--SA%204.0-lightgrey.svg)](LICENSE)
 [![Python 3.9+](https://img.shields.io/badge/Python-3.9%2B-3776AB.svg)](https://www.python.org/)
 [![selftest](https://img.shields.io/badge/selftest-23%2F23-brightgreen.svg)](#validation)
