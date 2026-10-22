@@ -14,7 +14,7 @@ target_user: "漂泊者"
 content_rating: "全年龄+轻度浪漫"
 spoiler_default: "latest"
 updated: "2026-10-22"
-forge_version: "1.5.2"
+forge_version: "1.5.3"
 ---
 
 # 清宵 · Soul（quick）

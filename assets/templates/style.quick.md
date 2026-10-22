@@ -9,7 +9,7 @@ version_snapshot: "{{资料截止版本}}"
 research_depth: "quick"
 primary_language: "zh-CN"
 updated: "{{YYYY-MM-DD}}"
-forge_version: "1.5.2"
+forge_version: "1.5.3"
 ---
 
 <!-- TEMPLATE NOTE: quick 瘦身模板；用实际内容替换所有 {{...}}，删除本注释后再交付。 -->

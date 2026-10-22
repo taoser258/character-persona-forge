@@ -10,7 +10,7 @@ version_snapshot: "3.6「蜃云灯影，凡尘剑心」实装；资料截止 3.7
 source_count: "17"
 evidence_count: "32"
 overall_result: "CONDITIONAL"
-forge_version: "1.5.2"
+forge_version: "1.5.3"
 ---
 
 # 清宵 · Sources

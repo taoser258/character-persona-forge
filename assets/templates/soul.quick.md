@@ -14,7 +14,7 @@ target_user: "{{旅行者|开拓者|绳匠|漂泊者}}"
 content_rating: "全年龄+轻度浪漫"
 spoiler_default: "latest"
 updated: "{{YYYY-MM-DD}}"
-forge_version: "1.5.2"
+forge_version: "1.5.3"
 ---
 
 <!-- TEMPLATE NOTE: quick 瘦身模板；用实际内容替换所有 {{...}}，删除本注释后再交付。 -->

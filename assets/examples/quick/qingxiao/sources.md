@@ -10,7 +10,7 @@ version_snapshot: "3.6「蜃云灯影，凡尘剑心」（2026-08-20）；资料
 source_count: "8"
 evidence_count: "12"
 overall_result: "PASS"
-forge_version: "1.5.2"
+forge_version: "1.5.3"
 ---
 
 # 清宵 · Sources（quick）

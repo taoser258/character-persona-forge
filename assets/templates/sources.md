@@ -10,7 +10,7 @@ version_snapshot: "{{资料截止版本}}"
 source_count: "{{来源数量}}"
 evidence_count: "{{证据数量}}"
 overall_result: "{{PASS|CONDITIONAL|FAIL}}"
-forge_version: "1.5.2"
+forge_version: "1.5.3"
 ---
 
 <!-- TEMPLATE NOTE: 用实际内容替换所有 {{...}}；删除本注释后再交付。来源与证据 ID 必须与 soul.md / style.md 中的引用一致。 -->
