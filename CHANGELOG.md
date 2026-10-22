@@ -12,6 +12,7 @@
 - 新增中文优先的双语 README（`README.md` / `README.en.md`）；许可证从 MIT 切换为 **CC BY-NC-SA 4.0**。
 - README 明确“当前内置四款游戏、来源架构可扩展”，补充 25 个主流宿主接入方式和正式仓库架构。
 - 新增 `AGENTS.md`、`CONTRIBUTING.md`、`SECURITY.md`、`.github/workflows/selftest.yml`；单 skill 仓库采用根目录即 skill 的布局。
+- 修复 Windows CI：`make_fixtures.py` 显式以 LF 写入并规范化 fixture，避免 CRLF/LF 哈希不一致。
 
 ## 1.5.0 — 2026-10-22
 

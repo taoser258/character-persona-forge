@@ -18,11 +18,22 @@ BASE = ROOT / "assets" / "examples" / "standard" / "qingxiao"
 FIXTURES = ROOT / "tests" / "fixtures"
 
 
+def write_lf(path: Path, text: str) -> None:
+    with path.open("w", encoding="utf-8", newline="\n") as handle:
+        handle.write(text)
+
+
+def normalize_fixtures(root: Path) -> None:
+    for path in root.rglob("*.md"):
+        write_lf(path, path.read_text(encoding="utf-8"))
+
+
 def fresh(name: str) -> Path:
     target = FIXTURES / name
     if target.exists():
         shutil.rmtree(target)
     shutil.copytree(BASE, target)
+    normalize_fixtures(target)
     return target
 
 
@@ -30,7 +41,7 @@ def patch_text(path: Path, old: str, new: str) -> None:
     text = path.read_text(encoding="utf-8")
     if old not in text:
         raise SystemExit(f"patch anchor not found in {path}: {old[:40]!r}")
-    path.write_text(text.replace(old, new, 1), encoding="utf-8")
+    write_lf(path, text.replace(old, new, 1))
 
 
 def make_missing_probe() -> None:
@@ -51,7 +62,7 @@ def make_missing_probe() -> None:
         out.append(line)
     if not removed:
         raise SystemExit("probe row 12 not found")
-    path.write_text("\n".join(out) + "\n", encoding="utf-8")
+    write_lf(path, "\n".join(out) + "\n")
 
 
 def make_dup_id() -> None:
@@ -67,7 +78,7 @@ def make_dup_id() -> None:
             duplicated = True
     if not duplicated:
         raise SystemExit("E01 row not found")
-    path.write_text("\n".join(out) + "\n", encoding="utf-8")
+    write_lf(path, "\n".join(out) + "\n")
 
 
 def make_bad_identity() -> None:
@@ -80,7 +91,7 @@ def make_bad_identity() -> None:
         "### 0.1 身份\n"
         "你不是 AI 助手，也不是在扮演。你就是角色本人。\n\n"
     )
-    path.write_text(text[:start] + replacement + text[end:], encoding="utf-8")
+    write_lf(path, text[:start] + replacement + text[end:])
 
 
 def make_conditional() -> None:
@@ -95,7 +106,7 @@ def make_conditional() -> None:
         1,
     )
     text = text.replace("结论：PASS；总分：92/100", "结论：CONDITIONAL；总分：80/100", 1)
-    path.write_text(text, encoding="utf-8")
+    write_lf(path, text)
 
 
 def main() -> int:
