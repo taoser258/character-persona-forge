@@ -1,0 +1,7 @@
+__pycache__/
+*.pyc
+tests/_tmp*
+.DS_Store
+Thumbs.db
+.venv/
+dist/
