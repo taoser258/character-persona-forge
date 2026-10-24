@@ -1036,7 +1036,7 @@ def main() -> int:
         pack = pack_for_game(fm.get("game"))
         if fm.get("game") and not pack:
             errors.append(
-                f"{name}: 不支持的游戏名 '{fm['game']}'；请在 references/games/ 添加游戏档案"
+                f"{name}: 未登记的游戏名 '{fm['game']}'；请在 references/games/ 添加游戏档案"
             )
         if pack and fm.get("game_slug") and fm["game_slug"] != pack.get("id"):
             errors.append(

@@ -1,13 +1,13 @@
 ---
 name: character-persona-forge
-description: "Generate source-audited soul.md, style.md, and sources.md persona documents for characters from built-in games (Genshin Impact, Honkai: Star Rail, Zenless Zone Zero, Wuthering Waves, Arknights, Arknights: Endfield, Black Myth: Wukong, Hades, Night in the Woods) and other source-backed games via a game-onboarding gate. Use when creating, rebuilding, auditing, or updating a game-character persona for AI roleplay, or mentioning soul.md/style.md, 角色人格文档, 让AI扮演某角色, 原神/星铁/绝区零/鸣潮/明日方舟/终末地/黑神话/Hades/哈迪斯/林中之夜/NITW/博士/管理员/天命人/Zagreus/Mae."
+description: "Generate source-audited soul.md, style.md, and sources.md persona documents for characters from optimized and tested games (Genshin Impact, Honkai: Star Rail, Zenless Zone Zero, Wuthering Waves, Arknights, Arknights: Endfield, Black Myth: Wukong, Hades, Night in the Woods) and any other source-backed game via a game-onboarding gate. Use when creating, rebuilding, auditing, or updating a game-character persona for AI roleplay, or mentioning soul.md/style.md, 角色人格文档, 让AI扮演某角色, 原神/星铁/绝区零/鸣潮/明日方舟/终末地/黑神话/Hades/哈迪斯/林中之夜/NITW/博士/管理员/天命人/Zagreus/Mae."
 # Qoder Agent Skills 扩展键；严格宿主可忽略，触发信息已包含在 description。
-when_to_use: "用户要求为内置游戏或任意有可检索来源的游戏角色制作可注入 AI 的人格文档，或核查已有角色文档的还原度与来源。"
+when_to_use: "用户要求为重点优化与验证的游戏，或任意有可检索来源的游戏角色制作可注入 AI 的人格文档，或核查已有角色文档的还原度与来源。"
 license: CC-BY-NC-SA-4.0
 metadata:
   version: "1.7.0"
-  description_zh: "为内置游戏与任意有可检索来源的游戏角色生成可注入 AI 的 soul.md、style.md 与 sources.md，含来源发现、官方取证、OOC 红线与自检报告。"
-  description_en: "Generate source-audited persona documents for built-in games and arbitrary source-backed games, with onboarding, evidence grading, OOC boundaries, and self-checks."
+  description_zh: "为重点优化与验证的游戏，以及任意有可检索来源的游戏角色生成可注入 AI 的 soul.md、style.md 与 sources.md，含来源发现、官方取证、OOC 红线与自检报告。"
+  description_en: "Generate source-audited persona documents for optimized and tested games and arbitrary source-backed games, with onboarding, evidence grading, OOC boundaries, and self-checks."
 ---
 
 # Character Persona Forge
@@ -22,7 +22,7 @@ metadata:
 
 把一个游戏角色编译成三份可移植文档：`soul.md` 定义“我是谁”，`style.md` 定义“我怎么说”，`sources.md` 保存来源、证据、冲突和自检报告。
 
-这不是同人设定生成器，而是“官方来源 → 证据分级 → 人格契约 → 自检”的取证流程。核心卖点是**可核查、少 OOC、官方来源优先**。当前内置九款游戏档案（六款 curated + 《黑神话：悟空》《Hades》《Night in the Woods》provisional）；其它游戏通过 `references/game-onboarding.md` 做来源发现与 Game Pack 接入，不需要改核心流程。
+这不是同人设定生成器，而是“官方来源 → 证据分级 → 人格契约 → 自检”的取证流程。核心卖点是**可核查、少 OOC、官方来源优先**。仓库内置九款经过重点优化与验证的游戏档案（六款 curated + 《黑神话：悟空》《Hades》《Night in the Woods》provisional）。支持范围不限于此：任意有可检索来源的游戏都可以通过 `references/game-onboarding.md` 做来源发现与 Game Pack 接入，不需要改核心流程。
 
 ## 何时使用
 
@@ -57,7 +57,7 @@ metadata:
 
 | 参数 | 必需 | 默认 | 说明 |
 |---|---|---|---|
-| 游戏 | 是 | 无 | 内置游戏，或任意有可检索来源、已通过 `game-onboarding` 接入的游戏；角色名跨游戏时先确认 |
+| 游戏 | 是 | 无 | 重点优化与验证的游戏，或任意有可检索来源、已通过 `game-onboarding` 接入的游戏；角色名跨游戏时先确认 |
 | 原文语言/译文来源 | 否 | 由 Game Pack 的 `languages` 决定 | 非中文游戏必须确认原文语言与译文来源；`sources.md` §4 / `style.md` §3 最后一列写中文译文，引用时标“译文” |
 | 角色 | 是 | 无 | 常用名即可；多形态角色默认最新/主形态 |
 | 深度 | 否 | `standard` | `quick` / `standard` / `deep` |
@@ -65,7 +65,7 @@ metadata:
 | 阶段/身份层 | 否 | 最新状态 | 早期形态写入附录 A |
 | 剧透闸门 | 否 | `latest` | 可改为“截至用户进度”或“无剧透” |
 
-当前内置游戏与固定主角称号：
+重点优化与验证的游戏与固定主角称号：
 
 | 游戏 | 写入目录名 | 固定主角称号 |
 |---|---|---|
@@ -81,7 +81,7 @@ metadata:
 
 角色有多个常用名、同名角色或重大形态时，列出 2-4 个候选让用户选；用户回答后才能继续，不要自作主张。用户没有指定深度时默认 `standard`，不追问深度；但开工计划仍必须先输出并等待确认/授权，不得因为参数齐全直接开工。
 
-### 内置游戏之外的接入
+### 内置 pack 之外的接入
 
 不要跳过接入闸门直接写人格文档。先按 `references/game-onboarding.md` 做来源发现、A/B/C/D/E 定级和用户确认，再运行：
 
@@ -183,7 +183,7 @@ personas/<中文游戏名>/<中文角色名>/
 | `references/source-policy.md` | 来源分级、引用规则、冲突裁决、安全边界、引用配额 |
 | `references/source-registry.md` | 人类可读来源索引（指向 `sources/` 下各游戏文件） |
 | `references/game-onboarding.md` | 任意游戏接入：来源发现、A/B/C/D/E 定级、provisional pack、`game-init`/`game-check` 闸门、v1.7 边界 |
-| `references/games/index.json` | 机器可读游戏索引（六款 curated + 黑神话：悟空/Hades/Night in the Woods provisional） |
+| `references/games/index.json` | 机器可读游戏索引（九款重点优化与验证的 pack：六款 curated + 三款 provisional） |
 | `references/games/<id>.json` | 游戏档案：名称/别名、目录、主角称号、语言、正典、来源地形、验证参数 |
 | `references/sources/common.md` | 通用检索规则、跨游戏质量规则 |
 | `references/sources/genshin.md` | 原神官方入口、缺口、检索式、社区补缺 |

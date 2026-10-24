@@ -1,6 +1,6 @@
 # 通用来源规则
 
-> 所有内置游戏共用：检索顺序、SPA/登录墙处理、跨游戏质量规则、维护记录。
+> 所有已优化与验证的游戏共用：检索顺序、SPA/登录墙处理、跨游戏质量规则、维护记录。
 > 各游戏专属入口见同目录 `genshin.md` / `hsr.md` / `zzz.md` / `wuwa.md` / `arknights.md` / `arknights-endfield.md` / `black-myth-wukong.md` / `hades.md` / `night-in-the-woods.md`；其它游戏按 `../game-onboarding.md` 新建。
 
 ## 0. 通用顺序与规则

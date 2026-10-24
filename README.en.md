@@ -11,7 +11,7 @@
 
 `character-persona-forge` is an Agent Skill that connects official sources, evidence grading, persona boundaries, runtime injection, and reproducible self-checks into one auditable pipeline. It produces `soul.md`, `style.md`, and `sources.md`, plus an optional `injection.md` copy-ready pack.
 
-It is not a "let the model improvise a roleplay prompt" generator. It is a source → evidence → persona contract → self-check workflow. Nine Game Packs are built in: six curated games plus provisional Black Myth: Wukong, Hades, and Night in the Woods. Other games can be onboarded through `references/game-onboarding.md`.
+It is not a "let the model improvise a roleplay prompt" generator. It is a source → evidence → persona contract → self-check workflow. Nine **optimized and tested Game Packs** are built in: six curated games plus provisional Black Myth: Wukong, Hades, and Night in the Woods. **Support is not limited to them**: any game with retrievable sources can be onboarded through `references/game-onboarding.md`.
 
 ---
 
@@ -20,7 +20,7 @@ It is not a "let the model improvise a roleplay prompt" generator. It is a sourc
 - [Install](#install)
 - [Quick Start](#quick-start)
 - [Output](#output)
-- [Currently Supported Games](#currently-supported-games)
+- [Optimized and Tested Games](#optimized-and-tested-games)
 - [How a Persona Document Is Made](#how-a-persona-document-is-made)
 - [Keeping the Persona Alive](#keeping-the-persona-alive)
 - [Validation](#validation)
@@ -96,23 +96,27 @@ Default directory: `personas/<game-directory>/<character>/`. The three audit doc
 
 ---
 
-## Currently Supported Games
+## Optimized and Tested Games
+
+These games have dedicated source work, prompt calibration, and real test runs, so persona generation is more stable. **This is not the full support scope.** Any other game can be onboarded through `references/game-onboarding.md`.
 
 | Game | Status | Fixed protagonist title | Source profile |
 |---|---|---|---|
-| Genshin Impact | curated | Traveler | `references/sources/genshin.md` |
-| Honkai: Star Rail | curated | Trailblazer | `references/sources/hsr.md` |
-| Zenless Zone Zero | curated | Proxy | `references/sources/zzz.md` |
-| Wuthering Waves | curated | Rover | `references/sources/wuwa.md` |
-| Arknights | curated | Doctor | `references/sources/arknights.md` |
-| Arknights: Endfield | curated | Administrator | `references/sources/arknights-endfield.md` |
-| Black Myth: Wukong | provisional | Destined One (天命人) | `references/sources/black-myth-wukong.md` |
-| Hades | provisional | Zagreus | `references/sources/hades.md` |
-| Night in the Woods | provisional | Mae | `references/sources/night-in-the-woods.md` |
+| Genshin Impact | curated | Traveler | `genshin.md` |
+| Honkai: Star Rail | curated | Trailblazer | `hsr.md` |
+| Zenless Zone Zero | curated | Proxy | `zzz.md` |
+| Wuthering Waves | curated | Rover | `wuwa.md` |
+| Arknights | curated | Doctor | `arknights.md` |
+| Arknights: Endfield | curated | Administrator | `arknights-endfield.md` |
+| Black Myth: Wukong | provisional | Destined One (天命人) | `black-myth-wukong.md` |
+| Hades | provisional | Zagreus | `hades.md` |
+| Night in the Woods | provisional | Mae | `night-in-the-woods.md` |
+
+All source profiles live in `references/sources/`.
 
 Notes:
 
-- **provisional** means the onboarding metadata has not been confirmed by the user. It does not block generation, but the plan must say so.
+- **provisional** means the pack metadata has not been confirmed by the user. It does not block generation, but the plan must say so.
 - A game-level A landscape does not guarantee character-level S1. Black Myth is an A-grade game, but Erlang Shen has no official character page; 12/14 chapters were labeled `community-only` / `derived`.
 - Arbitrary-game onboarding, A/B/C/D/E grading, and depth caps are documented in `references/game-onboarding.md`.
 

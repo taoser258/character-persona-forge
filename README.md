@@ -11,7 +11,7 @@
 
 `character-persona-forge` 是一个 Agent Skill：把官方来源、证据分级、人格边界、运行时注入和自检测试串成一条可审计的流水线，生成 `soul.md`、`style.md`、`sources.md`，并可选生成 `injection.md` 一键注入包。
 
-它不是“让模型自由发挥一段角色扮演提示词”，而是“来源 → 证据 → 人格契约 → 自检”的文档生产流程。当前内置 **9 个 Game Pack**：六款 curated 游戏 + 黑神话：悟空、Hades、Night in the Woods 三款 provisional 试点；其它游戏可通过 `references/game-onboarding.md` 接入。
+它不是“让模型自由发挥一段角色扮演提示词”，而是“来源 → 证据 → 人格契约 → 自检”的文档生产流程。仓库内置 **9 个经过重点优化与实测的 Game Pack**：六款 curated 游戏 + 黑神话：悟空、Hades、Night in the Woods 三款 provisional 试点。**支持范围不限于此**：任意有可检索来源的游戏都可以通过 `references/game-onboarding.md` 接入。
 
 ---
 
@@ -20,7 +20,7 @@
 - [安装](#安装)
 - [快速开始](#快速开始)
 - [产出](#产出)
-- [当前支持的游戏](#当前支持的游戏)
+- [重点优化与验证的游戏](#重点优化与验证的游戏)
 - [它是怎么制作人格文档的](#它是怎么制作人格文档的)
 - [注入后如何维持长期对话](#注入后如何维持长期对话)
 - [验证与自检](#验证与自检)
@@ -96,23 +96,27 @@ Skill 的第一条回复会先给：
 
 ---
 
-## 当前支持的游戏
+## 重点优化与验证的游戏
+
+这些游戏做过专门的来源整理、提示词校准和实测，人格文档生成效果更稳定；**不是支持范围的全部**。其它游戏按 `references/game-onboarding.md` 接入即可。
 
 | 游戏 | 状态 | 固定主角称号 | 来源档案 |
 |---|---|---|---|
-| 原神 / Genshin Impact | curated | 旅行者 | `references/sources/genshin.md` |
-| 崩坏：星穹铁道 / Honkai: Star Rail | curated | 开拓者 | `references/sources/hsr.md` |
-| 绝区零 / Zenless Zone Zero | curated | 绳匠 | `references/sources/zzz.md` |
-| 鸣潮 / Wuthering Waves | curated | 漂泊者 | `references/sources/wuwa.md` |
-| 明日方舟 / Arknights | curated | 博士 | `references/sources/arknights.md` |
-| 明日方舟：终末地 / Arknights: Endfield | curated | 管理员 | `references/sources/arknights-endfield.md` |
-| 黑神话：悟空 / Black Myth: Wukong | provisional | 天命人 | `references/sources/black-myth-wukong.md` |
-| Hades | provisional | Zagreus | `references/sources/hades.md` |
-| Night in the Woods | provisional | Mae | `references/sources/night-in-the-woods.md` |
+| 原神 / Genshin Impact | curated | 旅行者 | `genshin.md` |
+| 崩坏：星穹铁道 / Honkai: Star Rail | curated | 开拓者 | `hsr.md` |
+| 绝区零 / Zenless Zone Zero | curated | 绳匠 | `zzz.md` |
+| 鸣潮 / Wuthering Waves | curated | 漂泊者 | `wuwa.md` |
+| 明日方舟 / Arknights | curated | 博士 | `arknights.md` |
+| 明日方舟：终末地 / Arknights: Endfield | curated | 管理员 | `arknights-endfield.md` |
+| 黑神话：悟空 / Black Myth: Wukong | provisional | 天命人 | `black-myth-wukong.md` |
+| Hades | provisional | Zagreus | `hades.md` |
+| Night in the Woods | provisional | Mae | `night-in-the-woods.md` |
+
+来源档案均位于 `references/sources/`。
 
 说明：
 
-- **provisional** 表示接入信息尚未由用户确认，不阻止生成，但开工计划里必须说明。
+- **provisional** 表示该 pack 的接入信息尚未由用户确认，不阻止生成，但开工计划里必须说明。
 - 游戏级来源地形为 A，不代表每个角色都有角色级 S1。黑神话就是 A 级游戏，但二郎神角色级 S1=0，最终 12/14 章标 `community-only` / `derived`。
 - 任意游戏接入、A/B/C/D/E 定级和深度上限见 `references/game-onboarding.md`。
 
