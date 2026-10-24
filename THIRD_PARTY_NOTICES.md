@@ -1,5 +1,7 @@
 # Third-Party Notices
 
+> 本文件记录第三方社区转录来源与许可状态；正文使用英文，便于权利人阅读。本仓库不打包剧本、字幕或音频原文。
+
 This repository is an unofficial, non-commercial Agent Skill project. It is not affiliated with or endorsed by any game developer or publisher.
 
 Game names, characters, dialogue, artwork, music, and related intellectual property remain the property of their respective rights holders. The repository includes original skill code, templates, and documentation; it does not bundle game scripts, subtitle files, or other full third-party text.

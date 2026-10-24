@@ -51,6 +51,7 @@
 - 新增 `THIRD_PARTY_NOTICES.md`：记录 Hades/NITW 社区转录来源、无许可证声明、仅短句核对、不打包原始剧本/字幕；双语 README 的许可声明同步更新。
 - README 重构为“入口 + 快速开始 + 索引”：安装前置，新增“让 Agent 直接安装”的 GitHub 地址；长流程/长期对话细节改为链接到 `references/`，中英双语同步，篇幅从 746 行压到 276 行。
 - 文档口径从“支持的游戏”改为“重点优化与验证的游戏”，明确支持范围不限于 9 个内置 pack；来源表路径缩短为文件名，避免表格换行。
+- 最终审查（ZCode）：建议发布；补齐双语 README 的 Contributing 目录锚点，并在 `THIRD_PARTY_NOTICES.md` 顶部加中文说明。无严重/中等问题。
 
 > C 类中“来源许可”已通过 NOTICE 与“不打包原文”收口；“standard 含金量”已完成独立盲评；发布流程与 WorkBuddy 补测仍待执行。
 

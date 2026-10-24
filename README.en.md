@@ -29,6 +29,7 @@ It is not a "let the model improvise a roleplay prompt" generator. It is a sourc
 - [Adding a Game](#adding-a-game)
 - [Good Fit / Not a Good Fit](#good-fit--not-a-good-fit)
 - [License and Notices](#license-and-notices)
+- [Contributing](#contributing)
 
 ---
 
