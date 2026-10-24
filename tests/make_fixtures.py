@@ -109,12 +109,21 @@ def make_conditional() -> None:
     write_lf(path, text)
 
 
+def make_depth_mismatch() -> None:
+    target = fresh("fail_depth_mismatch")
+    path = target / "style.md"
+    text = path.read_text(encoding="utf-8")
+    text = text.replace('research_depth: "standard"', 'research_depth: "quick"', 1)
+    write_lf(path, text)
+
+
 def main() -> int:
     make_missing_probe()
     make_dup_id()
     make_bad_identity()
     make_conditional()
-    print("Regenerated 4 fixtures from assets/examples/standard/qingxiao")
+    make_depth_mismatch()
+    print("Regenerated 5 fixtures from assets/examples/standard/qingxiao")
     return 0
 
 

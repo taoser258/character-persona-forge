@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "id": "arknights-endfield",
+  "status": "curated",
+  "display_name": "明日方舟：终末地",
+  "aliases": [
+    "明日方舟：终末地",
+    "明日方舟终末地",
+    "终末地",
+    "Arknights: Endfield",
+    "Arknights Endfield"
+  ],
+  "game_field": "明日方舟终末地",
+  "directory": "明日方舟终末地",
+  "source_profile": "references/sources/arknights-endfield.md",
+  "source_landscape": "A",
+  "source_landscape_notes": "官方中文官网/官媒/演示 + BWIKI 等社区转录；官网 SPA 主要提供索引与公告。",
+  "languages": {
+    "official": ["zh-CN"],
+    "output": "zh-CN",
+    "official_zh": true,
+    "translation_policy": "none"
+  },
+  "protagonist": {
+    "mode": "fixed",
+    "default_title": "管理员",
+    "allowed_titles": ["管理员"],
+    "gender_neutral": true
+  },
+  "canon": {
+    "type": "live_service"
+  },
+  "content": {
+    "rating": "全年龄+轻度浪漫"
+  },
+  "verification": {
+    "s1_required_for_core": true,
+    "cross_check": 2,
+    "coverage_labels": ["partial", "community-only", "derived"],
+    "default_depth": "standard"
+  },
+  "known_pitfalls": [
+    "官网 SPA 常只给版本/公告/干员索引，角色详情正文不可得",
+    "BWIKI 角色页是 standard 首选；PRTS 不保证单个角色页"
+  ]
+}

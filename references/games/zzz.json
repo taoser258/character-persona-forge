@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "id": "zzz",
+  "status": "curated",
+  "display_name": "绝区零",
+  "aliases": ["绝区零", "ZZZ", "Zenless Zone Zero"],
+  "game_field": "绝区零",
+  "directory": "绝区零",
+  "source_profile": "references/sources/zzz.md",
+  "source_landscape": "A",
+  "source_landscape_notes": "官方中文代理人档案/公告/PV + 社区 Wiki 转录；语音与剧情主要靠社区。",
+  "languages": {
+    "official": ["zh-CN"],
+    "output": "zh-CN",
+    "official_zh": true,
+    "translation_policy": "none"
+  },
+  "protagonist": {
+    "mode": "fixed",
+    "default_title": "绳匠",
+    "allowed_titles": ["绳匠"],
+    "gender_neutral": true
+  },
+  "canon": {
+    "type": "live_service"
+  },
+  "content": {
+    "rating": "全年龄+轻度浪漫"
+  },
+  "verification": {
+    "s1_required_for_core": true,
+    "cross_check": 2,
+    "coverage_labels": ["partial", "community-only", "derived"],
+    "default_depth": "standard"
+  },
+  "known_pitfalls": [
+    "新闻单页正文可能只显示“数据加载中”，可尝试 ?page=feature 或 ?page=world",
+    "搜索索引标题可能与正文不一致，以页面正文为准"
+  ]
+}

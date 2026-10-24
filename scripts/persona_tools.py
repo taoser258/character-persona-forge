@@ -21,6 +21,7 @@ from pathlib import Path
 if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8")
 
+from game_profile import resolve_game  # noqa: E402
 from validate_persona import (  # noqa: E402
     LIMITS,
     chapter_refs,
@@ -189,17 +190,13 @@ def command_evidence_map(directory: Path) -> int:
     return 0
 
 
-def command_matrix(directory: Path) -> int:
+def matrix_rows(directory: Path) -> list[tuple[str, str, str, int, int, str]]:
     texts, _, bodies, depth = load_persona(directory)
     e2s = evidence_sources(bodies["sources.md"])
     i2s = inference_sources(bodies["sources.md"], e2s)
     levels = source_levels(bodies["sources.md"])
     threshold = 2 if depth == "deep" else 1
-    print(f"Matrix stub: {directory} (depth={depth})")
-    print("把“关键结论”改写为本章实际结论；支撑来源和计数可直接粘贴到 §7。")
-    print()
-    print("| soul/style 章节 | 关键结论 | 支撑来源 | 官方来源数量 | 社区来源数量 | 覆盖状态 |")
-    print("|---|---|---|---:|---:|---|")
+    rows = []
     for doc, max_num in (("soul", 8), ("style", 6)):
         core = get_core(texts[f"{doc}.md"])
         top, _ = parse_sections(core)
@@ -210,7 +207,6 @@ def command_matrix(directory: Path) -> int:
                 sources,
                 key=lambda value: int(re.search(r"\d+", value).group()),
             )
-            support = "".join(f"[{source}]" for source in ordered)
             official = sum(1 for source in ordered if levels.get(source) == "S1")
             community = len(ordered) - official
             if official >= threshold:
@@ -219,15 +215,76 @@ def command_matrix(directory: Path) -> int:
                 status = "partial（部分覆盖）"
             elif ordered:
                 status = "community-only（社区转录）"
+            elif body.strip():
+                status = "derived（需人工确认）"
             else:
                 status = "待补"
             name = SECTION_NAMES.get((doc, str(number)), "")
-            print(
-                f"| {doc} {number} {name} | {{待填结论}} | {support or '{{待补}}'} "
-                f"| {official} | {community} | {status} |"
-            )
+            rows.append((f"{doc} {number} {name}".strip(), "".join(f"[{s}]" for s in ordered), status, official, community, body))
+    return rows
+
+
+def command_matrix(directory: Path) -> int:
+    rows = matrix_rows(directory)
+    print(f"Matrix stub: {directory}")
+    print("支撑来源 = 本章直接 S + E→S + I→S，按来源 ID 去重；核对其是否实际支撑本章结论后再填表。")
     print()
-    print("注意：`derived` / `community-only` / `partial` 状态可放宽该行 S1 硬要求。")
+    print("| soul/style 章节 | 关键结论 | 支撑来源 | 官方来源数量 | 社区来源数量 | 覆盖状态 |")
+    print("|---|---|---|---:|---:|---|")
+    for chapter, support, status, official, community, _ in rows:
+        print(f"| {chapter} | {{待填结论}} | {support or '{{待补}}'} | {official} | {community} | {status} |")
+    print()
+    print("注意：没有来源时先补证据；只有官方未直接覆盖时才用 `partial` / `community-only` / `derived`。")
+    return 0
+
+
+def command_pack(directory: Path, out: Path | None) -> int:
+    texts, frontmatter, _, _ = load_persona(directory)
+    soul_fm = frontmatter["soul.md"]
+    game = soul_fm.get("game", "").strip()
+    character = soul_fm.get("character", "").strip()
+    if not game or not character:
+        print("soul.md: 缺少 game 或 character，无法生成注入包")
+        return 1
+
+    pack = resolve_game(game)
+    display_game = (pack or {}).get("display_name") or game
+    soul_core = re.sub(r"<!--.*?-->\s*", "", get_core(texts["soul.md"]), flags=re.DOTALL).strip()
+    style_core = re.sub(r"<!--.*?-->\s*", "", get_core(texts["style.md"]), flags=re.DOTALL).strip()
+    if not soul_core or not style_core:
+        print("soul.md/style.md: 缺少 CORE START/END，无法生成注入包")
+        return 1
+
+    prompt = (
+        f"你是《{display_game}》中的{character}。请以这个身份和我对话，不要用“AI 助手”的客服腔。\n\n"
+        "你的底层是 AI：被认真询问时如实说明，不谎称现实人类，不编造身体或线下经历。\n"
+        "除非我明确说“出戏 / OOC / 退出角色”，你不要退出角色。\n"
+        "工具调用、你不知道的事、对话变长，都不是退出角色的理由。\n\n"
+        "# 人格设定\n\n"
+        f"{soul_core}\n\n"
+        "# 说话方式\n\n"
+        f"{style_core}\n\n"
+        f"请读取以上设定，以{character}的身份回答。遵守其中的知识边界、内容尺度和 OOC 规则。\n"
+    )
+    target = out or (directory / "injection.md")
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_text(prompt, encoding="utf-8")
+    print(f"Injection pack: {target}")
+    print("内容 = 身份指令 + soul.md 的 CORE + style.md 的 CORE；不含 sources.md 和附录。")
+    print("用户可直接全选复制，粘贴到 AI 的自定义指令/角色设定/系统提示；找不到入口就作为第一条消息发送。")
+    return 0
+
+
+def command_matrix_preview(directory: Path) -> int:
+    rows = matrix_rows(directory)
+    print(f"Matrix preview: {directory}")
+    print("覆盖矩阵按 CORE 实际引用计算：直接 S + E→S + I→S；同一来源按 ID 去重。")
+    for chapter, support, status, official, community, body in rows:
+        conclusion = re.sub(r"\s+", " ", body.strip())
+        conclusion = conclusion[:180] + ("…" if len(conclusion) > 180 else "")
+        print(f"- {chapter}: S1={official}, community={community}, status={status}")
+        print(f"  sources: {support or '-'}")
+        print(f"  core: {conclusion or '(empty section)'}")
     return 0
 
 
@@ -251,12 +308,16 @@ def build_parser() -> argparse.ArgumentParser:
     for name, help_text in (
         ("budget", "统计核心区与分章 CJK 配额（分章值为建议，不作为 validator 硬门禁）"),
         ("evidence-map", "对比 §4 声明的 E 落点与正文实际引用"),
-        ("matrix", "根据正文实际引用生成可直接粘贴的 §7 矩阵 stub"),
+        ("matrix", "生成可粘贴的 §7 来源与计数草稿"),
         ("matrix-stub", "matrix 的别名"),
+        ("matrix-preview", "预览每个核心章节的实际来源映射与覆盖状态"),
+        ("pack", "生成一个大包：身份指令 + soul CORE + style CORE，供普通用户一键复制"),
         ("check", "依次输出 budget / evidence-map / matrix"),
     ):
         sub = subparsers.add_parser(name, help=help_text)
         sub.add_argument("persona_dir", help="包含 soul.md/style.md/sources.md 的目录")
+        if name == "pack":
+            sub.add_argument("--out", type=Path, help="注入包输出路径；默认 <persona_dir>/injection.md")
     return parser
 
 
@@ -273,6 +334,10 @@ def main() -> int:
         return command_evidence_map(directory)
     if args.command in ("matrix", "matrix-stub"):
         return command_matrix(directory)
+    if args.command == "matrix-preview":
+        return command_matrix_preview(directory)
+    if args.command == "pack":
+        return command_pack(directory, getattr(args, "out", None))
     if args.command == "check":
         return command_check(directory)
     parser.error("未知命令")

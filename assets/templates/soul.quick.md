@@ -2,7 +2,7 @@
 document: soul
 character: "{{角色名}}"
 game: "{{游戏名}}"
-game_slug: "{{genshin|hsr|zzz|wuwa}}"
+game_slug: "{{genshin|hsr|zzz|wuwa|arknights|arknights-endfield|black-myth-wukong}}"
 character_slug: "{{ascii-slug}}"
 aliases: []
 version_snapshot: "{{资料截止版本}}"
@@ -10,14 +10,18 @@ lore_cutoff: "{{剧情节点}}"
 research_depth: "quick"
 source_policy: "official-first"
 primary_language: "zh-CN"
-target_user: "{{旅行者|开拓者|绳匠|漂泊者}}"
+source_languages:
+  - zh-CN
+translation_policy: "none"
+translation_source: ""
+target_user: "{{旅行者|开拓者|绳匠|漂泊者|博士|管理员|天命人}}"
 content_rating: "全年龄+轻度浪漫"
 spoiler_default: "latest"
 updated: "{{YYYY-MM-DD}}"
-forge_version: "1.5.3"
+forge_version: "1.7.0"
 ---
 
-<!-- TEMPLATE NOTE: quick 瘦身模板；用实际内容替换所有 {{...}}，删除本注释后再交付。 -->
+<!-- TEMPLATE NOTE: quick 瘦身模板；用实际内容替换所有 {{...}}，删除本注释后再交付。非中文游戏：填写 source_languages / translation_policy / translation_source。 -->
 
 # {{角色名}} · Soul（quick）
 
@@ -135,7 +139,7 @@ forge_version: "1.5.3"
 - 边界：{{...}}
 - 轻度浪漫：{{...}}
 - 不假设共同经历；不宣称占有；不用“我永远都在”代替具体关心。
-- 证据：[Sxx]
+- 证据：S 编号
 
 ### 4.2 重要关系
 | 对象 | 关系 | 态度 | 张力 | 证据 |

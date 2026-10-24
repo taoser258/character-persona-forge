@@ -23,7 +23,15 @@ if hasattr(sys.stdout, "reconfigure"):
 ROOT = Path(__file__).resolve().parent.parent
 VALIDATOR = ROOT / "scripts" / "validate_persona.py"
 sys.path.insert(0, str(VALIDATOR.parent))
-from validate_persona import extract_quotes, parse_frontmatter  # noqa: E402
+from validate_persona import (  # noqa: E402
+    extract_quotes,
+    parse_frontmatter,
+    translation_map,
+    validate_quote_quota,
+    validate_translation_consistency,
+    validate_translation_metadata,
+)
+from game_profile import load_packs, resolve_game, validate_pack  # noqa: E402
 
 PERSONA_TOOLS = ROOT / "scripts" / "persona_tools.py"
 PROBE_HARNESS = ROOT / "scripts" / "probe_harness.py"
@@ -39,6 +47,12 @@ CASES = [
         ROOT / "tests/fixtures/fail_conditional_unapproved",
         1,
         "CONDITIONAL",
+    ),
+    (
+        "fail_depth_mismatch",
+        ROOT / "tests/fixtures/fail_depth_mismatch",
+        1,
+        "research_depth 在三份文档中不一致",
     ),
 ]
 
@@ -344,6 +358,354 @@ def run_variant_checks() -> list[bool]:
     return results
 
 
+def run_game_profile_checks() -> bool:
+    packs, errors = load_packs()
+    black_myth = resolve_game("Black Myth: Wukong", packs) or {}
+    hades = resolve_game("Hades", packs) or {}
+    nitw = resolve_game("NITW", packs) or {}
+    checks = {
+        "nine packs": len(packs) == 9,
+        "registry clean": not errors,
+        "genshin alias": (resolve_game("原神", packs) or {}).get("id") == "genshin",
+        "full-name alias": (resolve_game("明日方舟：终末地", packs) or {}).get("id")
+        == "arknights-endfield",
+        "english alias": (resolve_game("Arknights", packs) or {}).get("id") == "arknights",
+        "black myth alias": black_myth.get("id") == "black-myth-wukong",
+        "black myth pilot": (
+            (black_myth.get("protagonist") or {}).get("default_title") == "天命人"
+            and (black_myth.get("canon") or {}).get("type") == "complete"
+        ),
+        "hades alias": hades.get("id") == "hades",
+        "hades official zh": (
+            (hades.get("languages") or {}).get("official_zh") is True
+            and (hades.get("languages") or {}).get("translation_policy") == "official_zh"
+        ),
+        "nitw alias": nitw.get("id") == "night-in-the-woods",
+        "nitw community translation": (
+            (nitw.get("languages") or {}).get("official_zh") is False
+            and (nitw.get("languages") or {}).get("translation_policy")
+            == "community_translation"
+        ),
+    }
+    invalid = {
+        "schema_version": 1,
+        "id": "Bad ID",
+        "status": "curated",
+    }
+    invalid_errors = validate_pack(invalid)
+    checks["invalid pack rejected"] = any("id" in error for error in invalid_errors)
+    ok = all(checks.values())
+    print(("PASS" if ok else "FAIL") + " game_profiles")
+    if not ok:
+        for name, passed in checks.items():
+            if not passed:
+                print(f"  failed: {name}")
+        for error in errors[:10]:
+            print("  registry:", error)
+    return ok
+
+
+def run_game_alias_check() -> bool:
+    with tempfile.TemporaryDirectory() as tmp:
+        target = Path(tmp) / "game_alias"
+        shutil.copytree(ROOT / "assets/examples/standard/qingxiao", target)
+        for filename in ("soul.md", "style.md", "sources.md"):
+            path = target / filename
+            text = path.read_text(encoding="utf-8")
+            text = text.replace('game: "鸣潮"', 'game: "明日方舟：终末地"')
+            text = text.replace('game_slug: "wuwa"', 'game_slug: "arknights-endfield"')
+            if filename == "soul.md":
+                text = text.replace('target_user: "漂泊者"', 'target_user: "管理员"')
+            path.write_text(text, encoding="utf-8")
+        proc = subprocess.run(
+            [sys.executable, str(VALIDATOR), str(target), "--strict"],
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+        )
+        ok = proc.returncode == 0
+        print(("PASS" if ok else "FAIL") + " game_alias")
+        if not ok:
+            print((proc.stdout or "") + (proc.stderr or ""))
+        return ok
+
+
+def run_game_init_check() -> bool:
+    with tempfile.TemporaryDirectory() as tmp:
+        root = Path(tmp)
+        for name in ("scripts", "assets", "references"):
+            shutil.copytree(
+                ROOT / name,
+                root / name,
+                ignore=shutil.ignore_patterns("__pycache__"),
+            )
+        script = root / "scripts" / "game_profile.py"
+
+        def run(*args: str) -> subprocess.CompletedProcess:
+            return subprocess.run(
+                [sys.executable, str(script), *args],
+                cwd=root,
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                errors="replace",
+            )
+
+        baseline = run("check")
+        baseline_count = next(
+            (int(token) for token in baseline.stdout.split() if token.isdigit()),
+            None,
+        )
+
+        init = run(
+            "init",
+            "--id",
+            "test-game",
+            "--display-name",
+            "测试游戏",
+            "--title",
+            "试炼者",
+            "--alias",
+            "测试",
+            "--landscape",
+            "A",
+            "--canon",
+            "complete",
+        )
+        pack_path = root / "references" / "games" / "test-game.json"
+        source_path = root / "references" / "sources" / "test-game.md"
+        index = json.loads((root / "references" / "games" / "index.json").read_text(encoding="utf-8"))
+        checks = {
+            "init passes": init.returncode == 0,
+            "pack written": pack_path.is_file(),
+            "source skeleton": source_path.is_file() and "TODO" in source_path.read_text(encoding="utf-8"),
+            "index updated": "test-game" in index.get("games", []),
+        }
+
+        all_check = run("check")
+        checks["baseline check"] = baseline.returncode == 0 and baseline_count is not None
+        checks["init registry valid"] = (
+            all_check.returncode == 0
+            and baseline_count is not None
+            and f"{baseline_count + 1} game packs valid" in all_check.stdout
+        )
+
+        incomplete = run("game-check", "测试游戏", "--json")
+        try:
+            incomplete_json = json.loads(incomplete.stdout)
+        except json.JSONDecodeError:
+            incomplete_json = {}
+        checks["incomplete gate"] = (
+            incomplete.returncode == 2 and incomplete_json.get("status") == "INCOMPLETE"
+        )
+
+        source_path.write_text("# 测试游戏来源\n\n> 已人工补全。\n", encoding="utf-8")
+        ready = run("game-check", "测试游戏", "--json")
+        try:
+            ready_json = json.loads(ready.stdout)
+        except json.JSONDecodeError:
+            ready_json = {}
+        checks["ready gate"] = ready.returncode == 0 and ready_json.get("status") == "READY"
+
+        duplicate = run(
+            "init",
+            "--id",
+            "test-game",
+            "--display-name",
+            "测试游戏",
+            "--title",
+            "试炼者",
+            "--landscape",
+            "A",
+        )
+        checks["duplicate rejected"] = duplicate.returncode == 1
+
+        run(
+            "init",
+            "--id",
+            "test-d",
+            "--display-name",
+            "测试D",
+            "--title",
+            "行者",
+            "--landscape",
+            "D",
+            "--canon",
+            "complete",
+        )
+        (root / "references" / "sources" / "test-d.md").write_text(
+            "# 测试D来源\n\n> 已人工补全。\n", encoding="utf-8"
+        )
+        conditional = run("game-check", "test-d", "--json")
+        accepted = run("game-check", "test-d", "--accept-conditional", "--json")
+        try:
+            accepted_json = json.loads(accepted.stdout)
+        except json.JSONDecodeError:
+            accepted_json = {}
+        checks["conditional gate"] = conditional.returncode == 2
+        checks["conditional accepted"] = (
+            accepted.returncode == 0
+            and accepted_json.get("status") == "READY"
+            and accepted_json.get("default_depth") == "quick"
+        )
+
+        ok = all(checks.values())
+        print(("PASS" if ok else "FAIL") + " game_init")
+        if not ok:
+            for name, passed in checks.items():
+                if not passed:
+                    print(f"  failed: {name}")
+            for proc in (init, all_check, incomplete, ready, duplicate, conditional, accepted):
+                if proc.returncode != 0:
+                    print((proc.stdout or "") + (proc.stderr or ""))
+        return ok
+
+
+def run_nonzh_translation_checks() -> bool:
+    sources = """
+## 4. 原文证据摘录
+| ID | 原文（原语言） | 场景/对象 | 来源 | 用于章节 | 置信度 | 备注 | 中文译文（非中文必填） |
+|---|---|---|---|---|---|---|---|
+| [E01] | “I am the storm.” | 序章 | [S01] | soul 1 | 高 | 官方英文本 | “我就是风暴。” |
+| [E02] | “No gods.” | 序章 | [S01] | soul 1 | 高 | 官方英文本 | “没有神。” |
+| [E03] | “A \\| B” | 序章 | [S01] | soul 1 | 高 | 官方英文本 | “甲\\|乙” |
+"""
+    style_ok = """
+## 3. 官方台词语料
+| ID | 原文（原语言） | 场景/对象 | 用途 | 来源 | 置信度 | 中文译文（非中文必填） |
+|---|---|---|---|---|---|---|
+| [E01] | “I am the storm.” | 序章 | 语感 | [S01] | 高 | “我就是风暴。” |
+"""
+    style_missing = style_ok.replace("| “我就是风暴。” |", "|  |")
+    style_mismatch = style_ok.replace("“我就是风暴。”", "“我是风暴。”")
+    translations = translation_map(sources)
+    good_pack = {
+        "languages": {
+            "official": ["en"],
+            "official_zh": False,
+            "translation_policy": "community_translation",
+        }
+    }
+    zh_pack = {
+        "languages": {
+            "official": ["zh-CN"],
+            "official_zh": True,
+            "translation_policy": "none",
+        }
+    }
+    good_fm = {
+        "soul.md": {
+            "source_languages": "en",
+            "translation_policy": "community_translation",
+            "translation_source": "社区译者A",
+        }
+    }
+    checks = {
+        "translation map": translations == {
+            "E01": "我就是风暴。",
+            "E02": "没有神。",
+            "E03": "甲|乙",
+        },
+        "escaped pipe": translations.get("E03") == "甲|乙",
+        "translation complete": validate_translation_consistency(
+            sources, style_ok, True
+        )
+        == [],
+        "translation missing": any(
+            "E01" in error
+            for error in validate_translation_consistency(sources, style_missing, True)
+        ),
+        "translation mismatch": any(
+            "不一致" in error
+            for error in validate_translation_consistency(sources, style_mismatch, True)
+        ),
+        "translation metadata ok": validate_translation_metadata(good_fm, good_pack)
+        == [],
+        "translation metadata none rejected": any(
+            "不能是 none" in error
+            for error in validate_translation_metadata(
+                {
+                    "soul.md": {
+                        "source_languages": "en",
+                        "translation_policy": "none",
+                        "translation_source": "",
+                    }
+                },
+                good_pack,
+            )
+        ),
+        "translation metadata required": any(
+            "必须填写 translation_policy" in error
+            for error in validate_translation_metadata({"soul.md": {}}, good_pack)
+        ),
+        "translation source required": any(
+            "translation_source" in error
+            for error in validate_translation_metadata(
+                {
+                    "soul.md": {
+                        "source_languages": "en",
+                        "translation_policy": "community_translation",
+                        "translation_source": "",
+                    }
+                },
+                good_pack,
+            )
+        ),
+        "chinese docs unaffected": validate_translation_metadata({"soul.md": {}}, zh_pack)
+        == [],
+    }
+    ok = all(checks.values())
+    print(("PASS" if ok else "FAIL") + " nonzh_translation")
+    if not ok:
+        for name, passed in checks.items():
+            if not passed:
+                print(f"  failed: {name}")
+        print("  translations:", translations)
+    return ok
+
+
+def run_translation_quota_checks() -> bool:
+    def style_with(rows: int) -> str:
+        lines = [
+            "## 3. 官方台词语料",
+            "| ID | 原文 | 译文 |",
+            "|---|---|---|",
+        ]
+        for index in range(rows):
+            lines.append(f'| [E{index + 1:02d}] | “en{index}” | “中{index}” |')
+        lines.append("## 4.")
+        return "\n".join(lines) + "\n"
+
+    def has_quota_error(body: str, limit: int, translation_required: bool) -> bool:
+        errors, _ = validate_quote_quota(
+            body, "", True, translation_required=translation_required
+        )
+        return any(f"超过上限 {limit}" in error for error in errors)
+
+    checks = {
+        "nonzh 30 rows/60 quotes": not has_quota_error(
+            style_with(30), 60, translation_required=True
+        ),
+        "nonzh 31 rows/62 quotes": has_quota_error(
+            style_with(31), 60, translation_required=True
+        ),
+        "zh 15 rows/30 quotes": not has_quota_error(
+            style_with(15), 30, translation_required=False
+        ),
+        "zh 16 rows/32 quotes": has_quota_error(
+            style_with(16), 30, translation_required=False
+        ),
+    }
+    ok = all(checks.values())
+    print(("PASS" if ok else "FAIL") + " translation_quota")
+    if not ok:
+        for name, passed in checks.items():
+            if not passed:
+                print(f"  failed: {name}")
+    return ok
+
+
 def run_fixture_sync_check() -> bool:
     with tempfile.TemporaryDirectory() as tmp:
         root = Path(tmp)
@@ -475,6 +837,11 @@ def run_tool_and_quote_checks() -> list[bool]:
 def main() -> int:
     results = [run_case(*case) for case in CASES]
     results.extend(run_parser_and_json_checks())
+    results.append(run_game_profile_checks())
+    results.append(run_game_alias_check())
+    results.append(run_game_init_check())
+    results.append(run_nonzh_translation_checks())
+    results.append(run_translation_quota_checks())
     results.append(run_fixture_sync_check())
     results.extend(run_tool_and_quote_checks())
     print(f"\n{sum(results)}/{len(results)} checks passed")

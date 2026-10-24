@@ -2,10 +2,10 @@
 
 **English** | [简体中文](README.md)
 
-[![Version](https://img.shields.io/badge/version-1.5.3-blue.svg)](#)
+[![Version](https://img.shields.io/badge/version-1.7.0-blue.svg)](#)
 [![License: CC BY-NC-SA 4.0](https://img.shields.io/badge/License-CC%20BY--NC--SA%204.0-lightgrey.svg)](LICENSE)
 [![Python 3.9+](https://img.shields.io/badge/Python-3.9%2B-3776AB.svg)](https://www.python.org/)
-[![selftest](https://img.shields.io/badge/selftest-23%2F23-brightgreen.svg)](#validation)
+[![selftest](https://img.shields.io/badge/selftest-27%2F27-brightgreen.svg)](#validation)
 
 > Compile a game character into **auditable, injectable, testable** persona documents.
 
@@ -13,10 +13,10 @@
 
 It is not a "let the model improvise a roleplay prompt" generator. It is a document-production workflow with a plan gate, a source ledger, machine validation, and behavioral acceptance. The output can be injected as a CORE-only block, or kept as a full document with appendices for future updates and audits.
 
-> **Currently supported in-box:** Genshin Impact, Honkai: Star Rail, Zenless Zone Zero, and Wuthering Waves.
-> This is not a hard capability limit. Source support is split by game; adding another game only requires `references/sources/<game>.md` plus registry entries. The core workflow, templates, and validator remain reusable.
+> **Currently supported in-box:** Genshin Impact, Honkai: Star Rail, Zenless Zone Zero, Wuthering Waves, Arknights, Arknights: Endfield, plus the provisional pilots Black Myth: Wukong, Hades, and Night in the Woods.
+> This is not a hard capability limit. Any source-backed game can go through the onboarding gate in `references/game-onboarding.md`, get a provisional Game Pack from `game-init`, and reuse the same workflow, templates, and validator.
 
-> Generated persona documents are written in **Chinese**, with official Chinese text as the primary source. This README is available in both Chinese and English.
+> Generated persona documents are written in **Chinese**, with official Chinese text as the primary source. When only a non-Chinese official text exists, the original and a Chinese translation are stored in separate columns and the translation is labeled as such—never presented as official Chinese. This README is available in both Chinese and English.
 
 ---
 
@@ -127,7 +127,7 @@ Sources are managed in four tiers, and the tier determines what a source may sup
 
 The emphasis is not "collect more," but "collect verifiably":
 
-- **Official Chinese first.** Other localized versions are only for understanding tone differences, not for importing translationese.
+- **Official Chinese first.** When only a non-Chinese official text exists, keep the original plus a Chinese translation in separate columns, label the translation, and never present it as official Chinese. Other localized versions are only for understanding tone differences, not for importing translationese.
 - **Latest officially released content first.** If official canon retcons itself, use the latest released version and record the older claim; leaked or test-server content is never used.
 - **Standard depth cross-checks key conclusions with at least two independent sources.** Two pages on the same wiki are not two independent sources.
 - **If a video has no verbatim subtitles, do not quote dialogue in quotation marks.** Use official facts from the description, or label it "subtitles unavailable/non-verbatim."
@@ -238,7 +238,7 @@ The validator covers the parts most likely to drift while writing:
 - Whether the 12 OOC probes and 10 adversarial probes have legal scores, meet the average line, and avoid bottom scores on critical items.
 - Whether absolute AI denial, unreplaced placeholders, template comments, or quote-quota violations appear.
 
-`scripts/selftest.py` validates the validator itself: 2 positive examples + 4 negative fixtures + parsing/JSON/CONDITIONAL/output-guard/adversarial/forge/budget/E-consistency regressions. It currently passes **23/23**. When adding a rule, add a negative fixture or regression check in the same pass; otherwise it is "documented but unenforced."
+`scripts/selftest.py` validates the validator itself: 2 positive examples + 5 negative fixtures + Game Pack / `game-init` / non-Chinese translation / non-Chinese quote quota / research-depth consistency / parsing/JSON/CONDITIONAL/output-guard/adversarial/forge/budget/E-consistency regressions. It currently passes **29/29**. When adding a rule, add a negative fixture or regression check in the same pass; otherwise it is "documented but unenforced."
 
 ### 7. Behavioral Acceptance: Cold Start + 12 + 10 Probes
 
@@ -455,7 +455,15 @@ Probe scores and failures go into `sources.md` §8.3 / §8.7. "Self-check passed
 
 ### Minimum Viable Setup
 
-If you just want to use an existing persona document:
+**For non-technical users: three steps**
+
+1. Generate the copy-ready pack: `python scripts/persona_tools.py pack personas/<game>/<character>`, then open `injection.md` and select all.
+2. Start a new AI chat and paste it into "custom instructions / character settings / system prompt"; if you cannot find that field, send it as the first message.
+3. Start chatting. Say "out of character" to exit, and "back in character" to resume.
+
+No need to understand CORE or run validation commands. Do not send `sources.md` to the AI. If it drifts back into assistant voice after a few turns, say: "Continue speaking as this character; do not use assistant voice."
+
+**For advanced users:**
 
 1. **Start a new session**, not an old conversation.
 2. Put the identity directive + `soul.md` CORE + `style.md` CORE into the system prompt/custom instructions; when context is tight, at least put the identity directive + soul CORE.
@@ -496,8 +504,15 @@ The document makes the character clear; injection keeps the character present; p
 | Honkai: Star Rail | Supported | `references/sources/hsr.md` |
 | Zenless Zone Zero | Supported | `references/sources/zzz.md` |
 | Wuthering Waves | Supported | `references/sources/wuwa.md` |
+| Arknights | Supported | `references/sources/arknights.md` |
+| Arknights: Endfield | Supported | `references/sources/arknights-endfield.md` |
+| Black Myth: Wukong | Provisional pilot | `references/sources/black-myth-wukong.md` |
+| Hades | Provisional, P2 acceptance | `references/sources/hades.md` |
+| Night in the Woods | Provisional, P2 community-translation acceptance | `references/sources/night-in-the-woods.md` |
 
-Adding a game does not require rewriting the persona methodology: add a source profile, update the registry and validator constants, and reuse the same templates. See [Adding a Game](#adding-a-game).
+Fixed user titles: “Doctor” for Arknights, “Administrator” for Arknights: Endfield, “Destined One” (天命人) for Black Myth: Wukong, “Zagreus” for Hades, and “Mae” for Night in the Woods. Sources and memory boundaries stay separate; a shared IP or series does not imply shared memories.
+
+Adding a game does not require rewriting the persona methodology: run source discovery and A/B/C/D/E grading via `references/game-onboarding.md`, scaffold a pack with `game-init`, complete the source profile, and pass `game-check`. See [Adding a Game](#adding-a-game).
 
 ---
 
@@ -562,8 +577,13 @@ After generation, inject it as described in [Keeping the Persona Alive in Long C
 Python 3.9+ is required; all scripts use the standard library only.
 
 ```bash
-# 1. Validator regression
+# 0. New-game onboarding (optional)
+python scripts/game_profile.py init --id <id> --display-name "<name>" --title "<protagonist title>" --landscape <A/B/C/D/E>
+python scripts/game_profile.py game-check <id>
+
+# 1. Validator and game-pack regression
 python scripts/selftest.py
+python scripts/game_profile.py check
 
 # 2. Drafting helpers: budget / evidence landing / matrix stub
 python scripts/persona_tools.py check personas/<game>/<character>
@@ -572,10 +592,14 @@ python scripts/persona_tools.py check personas/<game>/<character>
 python scripts/validate_persona.py personas/<game>/<character> --strict --explain
 ```
 
+`matrix-preview` reports each CORE chapter's actual source set, S1/community counts, and coverage status. Counts combine direct S citations, the sources mapped from cited E rows in §4, and the sources cited as bases for I rows in §5, deduplicated by ID. Verify that the listed sources actually support each chapter's claim.
+
 Common subcommands:
 
 ```bash
 python scripts/persona_tools.py budget personas/<game>/<character>
+python scripts/persona_tools.py matrix-preview personas/<game>/<character>
+python scripts/persona_tools.py pack personas/<game>/<character>
 python scripts/persona_tools.py evidence-map personas/<game>/<character>
 python scripts/persona_tools.py matrix-stub personas/<game>/<character>
 python scripts/probe_harness.py gen-prompts personas/<game>/<character> --out-dir research/probe
@@ -624,6 +648,7 @@ This is a **single-skill repository**: the repository root is the skill folder. 
 │   ├── quality-rubric.md
 │   ├── runtime-integration.md
 │   ├── adversarial-probes.md
+│   ├── games/                # Machine-readable game packs (index.json + <id>.json)
 │   └── sources/              # Per-game source profiles
 ├── assets/
 │   ├── templates/            # standard + quick templates
@@ -643,15 +668,31 @@ The layout follows Agent Skills progressive disclosure: `SKILL.md` keeps only th
 
 ## Adding a Game
 
-Only four games are built in today, but the source architecture is extensible:
+Six curated games plus three provisional pilots (Black Myth: Wukong, Hades, and Night in the Woods) are built in today, and the architecture is Game Pack based. Every new game goes through the same onboarding gate; do not skip source discovery and write persona documents directly:
 
-1. Add `references/sources/<game>.md`: official entries, gaps, search patterns, community fallbacks, SPA/anti-bot notes.
-2. Update `references/source-registry.md`.
-3. Update the game input table in `SKILL.md` and the fixed protagonist title.
-4. Update `ALLOWED_GAMES` and `EXPECTED_USER` in `scripts/validate_persona.py`.
-5. Update the "Currently Supported Games" table in both READMEs.
-6. Add a fixture or example if the new game has different terminology.
-7. Run `python scripts/selftest.py`.
+1. **Source discovery and grading**: follow `references/game-onboarding.md` to check official sites, store pages, official social media, community wikis, and reachability; assign A/B/C/D/E and confirm the depth with the user.
+2. **Scaffold a provisional pack**:
+
+   ```bash
+   python scripts/game_profile.py init \
+     --id black-myth-wukong \
+     --display-name "黑神话：悟空" \
+     --title "天命人" \
+     --alias "黑神话悟空" \
+     --landscape A \
+     --canon complete
+   ```
+
+   This also creates `references/sources/<id>.md` and updates `index.json`.
+3. **Complete the source profile**: official entries, available material, gaps, search patterns, community fallbacks, and pitfalls; clear every `TODO`.
+4. **Pass the gate**: `python scripts/game_profile.py game-check <id>` must return `READY`; after the user confirms the pack, change `status` to `curated`.
+5. **Regress**: run `python scripts/game_profile.py check` and `python scripts/selftest.py`.
+
+v1.7 supports fixed protagonists with live-service or complete linear canon only. Selectable/custom/ensemble protagonists and branching/remake/EA/sandbox canon are reserved. D-grade sources are quick-only and require explicit CONDITIONAL acceptance; E-grade sources are refused.
+
+> **Source landscape is game-level, not character-level.** An A-grade game may still have no official character page or verifiable character quotes. Run the character-level S1 probe in `game-onboarding.md` §3.1 before starting; if character-level S1 is zero, use quick, or label standard chapters `partial` / `community-only` / `derived`. Never pad S1 with the homepage or unrelated announcements.
+
+> **When the official text is not Chinese:** put the Chinese translation in the last column of `sources.md` §4 and `style.md` §3/appendix, keep the original quote in the original column, and fill `source_languages` / `translation_policy` / `translation_source` in all three frontmatter files. Label translations and never present a community translation as official Chinese.
 
 ---
 
@@ -682,7 +723,8 @@ Original documentation, templates, scripts, and examples in this repository are 
 
 - **Commercial use is not permitted**; contact the maintainer for separate commercial licensing.
 - Game characters, names, official dialogue, and lore remain the property of their respective rights holders.
-- This is a fan-made workflow tool, not affiliated with or endorsed by HoYoverse, miHoYo, or Kuro Games.
+- This is a fan-made workflow tool, not affiliated with or endorsed by HoYoverse, miHoYo, Kuro Games, Hypergryph, Supergiant Games, Infinite Fall, or Finji.
+- Third-party community transcription sources and their status are listed in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md); the repository does not bundle scripts, subtitles, or voice files.
 - Official material is quoted only for commentary, research, and style calibration. Respect source-site terms and avoid bulk scraping.
 - Generated documents are intended for personal, non-commercial roleplay. Check local law and platform rules before publishing them.
 

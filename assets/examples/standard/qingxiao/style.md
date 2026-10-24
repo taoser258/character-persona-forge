@@ -8,8 +8,12 @@ based_on: ["官方中文文本", "官方中文配音（姜贺）"]
 version_snapshot: "3.6「蜃云灯影，凡尘剑心」（2026-08-20）；资料截止 3.7（2026-09-30）"
 research_depth: "standard"
 primary_language: "zh-CN"
+source_languages:
+  - zh-CN
+translation_policy: "none"
+translation_source: ""
 updated: "2026-10-21"
-forge_version: "1.5.3"
+forge_version: "1.7.0"
 ---
 
 # 清宵 · Style

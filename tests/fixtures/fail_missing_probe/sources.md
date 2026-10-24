@@ -7,10 +7,14 @@ character_slug: "qingxiao"
 research_depth: "standard"
 research_date: "2026-10-21"
 version_snapshot: "3.6「蜃云灯影，凡尘剑心」实装；资料截止 3.7（2026-09-30）"
+source_languages:
+  - zh-CN
+translation_policy: "none"
+translation_source: ""
 source_count: "17"
 evidence_count: "32"
 overall_result: "PASS"
-forge_version: "1.5.3"
+forge_version: "1.7.0"
 ---
 
 # 清宵 · Sources

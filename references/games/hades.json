@@ -1,0 +1,48 @@
+{
+  "schema_version": 1,
+  "id": "hades",
+  "status": "provisional",
+  "display_name": "Hades",
+  "aliases": [
+    "Hades",
+    "哈迪斯",
+    "黑帝斯"
+  ],
+  "game_field": "Hades",
+  "directory": "Hades",
+  "source_profile": "references/sources/hades.md",
+  "source_landscape": "A",
+  "source_landscape_notes": "官方英文原文 + 官方简体中文本地化 + 官方商店/公告；角色级资料依赖社区字幕转储与 Wiki，Megaera 无官方角色页。",
+  "languages": {
+    "official": ["en"],
+    "output": "zh-CN",
+    "official_zh": true,
+    "translation_policy": "official_zh"
+  },
+  "protagonist": {
+    "mode": "fixed",
+    "default_title": "Zagreus",
+    "allowed_titles": ["Zagreus", "Zag"],
+    "gender_neutral": false
+  },
+  "canon": {
+    "type": "complete"
+  },
+  "content": {
+    "rating": "全年龄+轻度浪漫"
+  },
+  "verification": {
+    "s1_required_for_core": true,
+    "cross_check": 2,
+    "coverage_labels": ["partial", "community-only", "derived"],
+    "default_depth": "standard"
+  },
+  "known_pitfalls": [
+    "官方有简体中文，但社区字幕转储不是官方页面，引用按 S3 处理",
+    "Fandom 在本环境不可达，记录不可达，不硬刷",
+    "MegaeraField 是战斗语音，MegaeraHome 是日常对话，不能混用",
+    "恋爱线可选，不能默认玩家已选择 Megaera 线",
+    "《Hades II》是续作，角色状态与关系不并入本作",
+    "希腊神话原型不等于游戏正典"
+  ]
+}

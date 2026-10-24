@@ -18,8 +18,12 @@ import re
 import sys
 from pathlib import Path
 
+from game_profile import load_packs, resolve_game
+
 if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8")
+
+GAME_PACKS, GAME_PROFILE_ERRORS = load_packs()
 
 SOUL_REQUIRED = [
     "## 1. 人格核心",
@@ -47,11 +51,12 @@ SOURCES_REQUIRED = [
     "## 7. 来源覆盖矩阵",
     "## 8. 自检报告",
 ]
-ALLOWED_GAMES = {"原神", "崩坏星穹铁道", "绝区零", "鸣潮"}
-ALLOWED_USERS = {"旅行者", "开拓者", "绳匠", "漂泊者"}
-EXPECTED_USER = {"原神": "旅行者", "崩坏星穹铁道": "开拓者", "绝区零": "绳匠", "鸣潮": "漂泊者"}
 ALLOWED_DEPTHS = {"quick", "standard", "deep"}
 ALLOWED_RESULTS = {"PASS", "CONDITIONAL", "FAIL"}
+
+
+def pack_for_game(value: str | None) -> dict | None:
+    return resolve_game(value or "", GAME_PACKS)
 ID_RE = re.compile(r"\[(S|E|I|C)(\d{2,})\]")
 DEF_RE = re.compile(r"^\|\s*\[(S|E|I|C)(\d{2,})\]\s*\|", re.MULTILINE)
 CORE_RE = re.compile(r"<!--\s*CORE START\s*-->(.*?)<!--\s*CORE END\s*-->", re.DOTALL)
@@ -191,7 +196,7 @@ def source_levels(body: str) -> dict[str, str]:
         match = re.match(r"^\|\s*\[(S\d{2,})\]\s*\|", line)
         if not match:
             continue
-        parts = [part.strip() for part in line.strip().strip("|").split("|")]
+        parts = _table_cells(line)
         levels[match.group(1)] = parts[5].upper() if len(parts) >= 6 else ""
     return levels
 
@@ -204,7 +209,7 @@ def probe_scores(body: str) -> list[int]:
     for line in section.splitlines():
         if not line.strip().startswith("|"):
             continue
-        parts = [part.strip() for part in line.strip().strip("|").split("|")]
+        parts = _table_cells(line)
         if len(parts) < 5 or not re.fullmatch(r"\d{1,2}", parts[0]):
             continue
         if re.fullmatch(r"[1-5]", parts[4]):
@@ -219,7 +224,7 @@ def adversarial_scores(body: str) -> dict[int, int]:
     score_idx: int | None = None
     for line in section.splitlines():
         if line.strip().startswith("|") and "得分" in line:
-            header = [part.strip() for part in line.strip().strip("|").split("|")]
+            header = _table_cells(line)
             for index, cell in enumerate(header):
                 if "得分" in cell:
                     score_idx = index
@@ -229,7 +234,7 @@ def adversarial_scores(body: str) -> dict[int, int]:
     for line in section.splitlines():
         if not line.strip().startswith("|"):
             continue
-        parts = [part.strip() for part in line.strip().strip("|").split("|")]
+        parts = _table_cells(line)
         if not parts or not re.fullmatch(r"\d{1,2}", parts[0]):
             continue
         number = int(parts[0])
@@ -269,34 +274,34 @@ def parse_sections(text: str) -> tuple[dict[str, str], dict[str, str]]:
     return top, subs
 
 
-def evidence_sources(body: str) -> dict[str, str]:
-    mapping: dict[str, str] = {}
+def evidence_sources(body: str) -> dict[str, set[str]]:
+    mapping: dict[str, set[str]] = {}
     for line in body.splitlines():
         match = re.match(r"^\|\s*\[(E\d{2,})\]\s*\|", line)
         if not match:
             continue
-        parts = [part.strip() for part in line.strip().strip("|").split("|")]
+        parts = _table_cells(line)
         if len(parts) < 4:
             continue
-        source = re.search(r"\[(S\d{2,})\]", parts[3])
-        if source:
-            mapping[match.group(1)] = source.group(1)
+        sources = set(re.findall(r"\[(S\d{2,})\]", parts[3]))
+        if sources:
+            mapping[match.group(1)] = sources
     return mapping
 
 
-def inference_sources(body: str, e2s: dict[str, str]) -> dict[str, set[str]]:
+def inference_sources(body: str, e2s: dict[str, set[str]]) -> dict[str, set[str]]:
     mapping: dict[str, set[str]] = {}
     for line in body.splitlines():
         match = re.match(r"^\|\s*\[(I\d{2,})\]\s*\|", line)
         if not match:
             continue
-        parts = [part.strip() for part in line.strip().strip("|").split("|")]
+        parts = _table_cells(line)
         if len(parts) < 4:
             continue
         basis = " ".join(parts[2:4])
-        sources = {
-            e2s[e] for e in re.findall(r"\[(E\d{2,})\]", basis) if e in e2s
-        }
+        sources: set[str] = set()
+        for evidence in re.findall(r"\[(E\d{2,})\]", basis):
+            sources.update(e2s.get(evidence, set()))
         if sources:
             mapping[match.group(1)] = sources
     return mapping
@@ -307,8 +312,7 @@ def section_sources(
 ) -> set[str]:
     sources = set(re.findall(r"\[(S\d{2,})\]", body))
     for evidence in re.findall(r"\[(E\d{2,})\]", body):
-        if evidence in e2s:
-            sources.add(e2s[evidence])
+        sources.update(e2s.get(evidence, set()))
     for inference in re.findall(r"\[(I\d{2,})\]", body):
         sources |= i2s.get(inference, set())
     return sources
@@ -320,13 +324,181 @@ def quoted_evidence_map(body: str) -> dict[str, str]:
         match = re.match(r"^\|\s*\[(E\d{2,})\]\s*\|", line)
         if not match:
             continue
-        parts = [part.strip() for part in line.strip().strip("|").split("|")]
+        parts = _table_cells(line)
         if len(parts) < 2:
             continue
         quote = extract_quotes(parts[1])
         if quote:
             mapping[match.group(1)] = re.sub(r"\s+", "", quote[0])
     return mapping
+
+
+TRANSLATION_POLICIES = {"none", "official_zh", "community_translation"}
+NONZH_POLICIES = {"official_zh", "community_translation"}
+ZH_LANGUAGES = {"zh", "zh-cn", "zh-hans", "zh-hant", "chinese", "中文"}
+
+
+def _table_cells(line: str) -> list[str]:
+    parts = re.split(r"(?<!\\)\|", line.strip().strip("|"))
+    return [part.strip().replace("\\|", "|") for part in parts]
+
+
+def _fm_list(value: str | None) -> list[str]:
+    if not value:
+        return []
+    text = value.strip()
+    if text.startswith("[") and text.endswith("]"):
+        text = text[1:-1]
+    return [
+        item.strip().strip('"').strip("'")
+        for item in text.replace("，", ",").split(",")
+        if item.strip().strip('"').strip("'")
+    ]
+
+
+def _is_zh_language(value: str) -> bool:
+    return value.strip().lower() in ZH_LANGUAGES
+
+
+def evidence_ids(body: str) -> list[str]:
+    ids: list[str] = []
+    for line in body.splitlines():
+        match = re.match(r"^\|\s*\[(E\d{2,})\]\s*\|", line)
+        if match:
+            ids.append(match.group(1))
+    return ids
+
+
+def translation_map(body: str) -> dict[str, str]:
+    """Read the optional 中文译文 column from an evidence/quote table.
+
+    The translation column is appended after existing columns so older Chinese
+    tables without it keep their original layout.
+    """
+    header: list[str] | None = None
+    for line in body.splitlines():
+        if not line.strip().startswith("|"):
+            continue
+        cells = _table_cells(line)
+        if cells and cells[0] == "ID" and any("原文" in cell for cell in cells):
+            header = cells
+            break
+    if not header:
+        return {}
+    translation_index = next(
+        (i for i, cell in enumerate(header) if "译文" in cell or "翻译" in cell),
+        None,
+    )
+    if translation_index is None:
+        return {}
+    mapping: dict[str, str] = {}
+    for line in body.splitlines():
+        match = re.match(r"^\|\s*\[(E\d{2,})\]\s*\|", line)
+        if not match:
+            continue
+        cells = _table_cells(line)
+        if len(cells) <= translation_index:
+            continue
+        quotes = extract_quotes(cells[translation_index])
+        if quotes:
+            mapping[match.group(1)] = re.sub(r"\s+", "", quotes[0])
+    return mapping
+
+
+def validate_translation_metadata(
+    fms: dict[str, dict[str, str]], pack: dict | None
+) -> list[str]:
+    errors: list[str] = []
+    pack_languages = (pack or {}).get("languages", {})
+    pack_policy = pack_languages.get("translation_policy")
+    pack_official_zh = pack_languages.get("official_zh")
+    for name, fm in fms.items():
+        policy = fm.get("translation_policy")
+        source_languages = _fm_list(fm.get("source_languages"))
+        if policy and policy not in TRANSLATION_POLICIES:
+            errors.append(
+                f"{name}: translation_policy 必须是 {sorted(TRANSLATION_POLICIES)}"
+            )
+        if policy and pack_policy and policy != pack_policy:
+            errors.append(
+                f"{name}: translation_policy={policy} 与游戏档案的 {pack_policy} 不一致"
+            )
+        if pack_official_zh is False and not policy:
+            errors.append(
+                f"{name}: 游戏官方无中文，必须填写 translation_policy"
+            )
+        if pack_official_zh is False and not source_languages:
+            errors.append(
+                f"{name}: 游戏官方无中文，必须填写 source_languages"
+            )
+        if policy == "none" and pack_official_zh is False:
+            errors.append(
+                f"{name}: 游戏官方无中文，translation_policy 不能是 none"
+            )
+        if policy in NONZH_POLICIES:
+            if not source_languages:
+                errors.append(f"{name}: 非中文流程必须在 frontmatter 填写 source_languages")
+            if not fm.get("translation_source"):
+                errors.append(f"{name}: 非中文流程必须填写 translation_source")
+            if policy == "official_zh" and pack_official_zh is False:
+                errors.append(
+                    f"{name}: 使用 official_zh 译文，但游戏档案声明 official_zh=false"
+                )
+            if policy == "community_translation" and pack_official_zh is True:
+                errors.append(
+                    f"{name}: 存在官方中文时应使用 official_zh 或 none，不要标社区翻译"
+                )
+        if source_languages and any(not _is_zh_language(lang) for lang in source_languages):
+            if policy in (None, "none"):
+                errors.append(
+                    f"{name}: source_languages 含非中文，但 translation_policy 不是 "
+                    "official_zh/community_translation"
+                )
+    return errors
+
+
+def translation_required(
+    pack: dict | None, fms: dict[str, dict[str, str]]
+) -> bool:
+    if not pack:
+        return False
+    languages = pack.get("languages", {})
+    if languages.get("translation_policy") in NONZH_POLICIES:
+        return True
+    if languages.get("official_zh") is False:
+        return True
+    return any(
+        fm.get("translation_policy") in NONZH_POLICIES for fm in fms.values()
+    )
+
+
+def validate_translation_consistency(
+    sources_body: str, style_body: str, required: bool
+) -> list[str]:
+    if not required:
+        return []
+    errors: list[str] = []
+    sources = translation_map(sources_body)
+    style = translation_map(style_body)
+    for evidence in evidence_ids(sources_body):
+        if evidence not in sources:
+            errors.append(
+                f"sources.md: {evidence} 为非中文原文，但缺少中文译文列"
+            )
+    for evidence in evidence_ids(style_body):
+        if evidence not in style:
+            errors.append(
+                f"style.md: {evidence} 为非中文台词，但缺少中文译文列"
+            )
+    for evidence, translation in style.items():
+        if evidence in sources and sources[evidence] != translation:
+            errors.append(
+                f"style.md: {evidence} 的中文译文与 sources.md §4 不一致"
+            )
+    for evidence, translation in sources.items():
+        if not CJK_RE.search(translation):
+            errors.append(f"sources.md: {evidence} 的中文译文不含中文")
+    return errors
 
 
 def validate_evidence_text_consistency(
@@ -355,7 +527,7 @@ def validate_evidence_landing(
         match = re.match(r"^\|\s*\[(E\d{2,})\]\s*\|", line)
         if not match:
             continue
-        parts = [part.strip() for part in line.strip().strip("|").split("|")]
+        parts = _table_cells(line)
         if len(parts) < 5:
             continue
         cell = parts[4]
@@ -519,7 +691,7 @@ def validate_source_heuristics(
 ) -> list[str]:
     warnings: list[str] = []
     for line in source_rows:
-        parts = [part.strip() for part in line.strip().strip("|").split("|")]
+        parts = _table_cells(line)
         if len(parts) < 6:
             continue
         sid, url, level = parts[0], parts[2], parts[5].upper()
@@ -559,10 +731,16 @@ def validate_source_heuristics(
 
 
 def validate_quote_quota(
-    style_body: str, sources_body: str, strict_mode: bool
+    style_body: str,
+    sources_body: str,
+    strict_mode: bool,
+    translation_required: bool = False,
 ) -> tuple[list[str], list[str]]:
     errors: list[str] = []
     warnings: list[str] = []
+    # 非中文文档每条 E 同时含原文和译文，两个 quote span 才算一条台词。
+    style_limit = 60 if translation_required else 30
+    sources_limit = 160 if translation_required else 80
 
     def check(label: str, text: str, max_quotes: int, max_cjk: int) -> None:
         quotes = extract_quotes(text)
@@ -577,13 +755,13 @@ def validate_quote_quota(
     check(
         "style.md §3 官方台词语料",
         section_between(style_body, "## 3. 官方台词语料", "## 4."),
-        30,
+        style_limit,
         1200,
     )
     check(
         "sources.md §4 原文证据",
         section_between(sources_body, "## 4. 原文证据摘录", "## 5."),
-        80,
+        sources_limit,
         3000,
     )
     return errors, warnings
@@ -652,7 +830,7 @@ def coverage_rows(body: str) -> list[tuple[int, list[str]]]:
     for lineno, line in enumerate(section.splitlines(), 1):
         if not line.strip().startswith("|") or "---" in line:
             continue
-        parts = [part.strip() for part in line.strip().strip("|").split("|")]
+        parts = _table_cells(line)
         if len(parts) < 6:
             continue
         if parts[0] in {"章节", "soul/style 章节"}:
@@ -758,7 +936,7 @@ EXPLAIN_RULES = [
     ("S1 来源", "官方确实未直接覆盖时，把覆盖状态改为 partial/community-only/derived。"),
     ("但该章节实际未使用", "从矩阵删掉该 S1，或把 S1 引用补进该章节。"),
     ("但矩阵未列", "把该来源加入 §7 对应行的支撑来源并更新计数。"),
-    ("覆盖矩阵缺少核心章节", "补 soul 1–8 与 style 1–6 共 14 行。"),
+    ("覆盖矩阵缺少核心章节", "补 soul 1–8 与 style 1–6 共 14 行。运行 persona_tools.py matrix-preview <目录> 查看 E/I 到来源的映射，再用 matrix-stub 生成矩阵草稿。"),
     ("编号重复", "重新编号，并同步 soul/style 中所有引用。"),
     ("断链引用", "先在 sources.md §3/§4 定义该 ID，再在正文引用。"),
     ("核心区", "把关系表、场景表、时间线、完整红线移入附录；CORE 只留结论和指针。"),
@@ -804,6 +982,8 @@ def main() -> int:
     root = Path(args[0])
     errors: list[str] = []
     warnings: list[str] = []
+    if GAME_PROFILE_ERRORS:
+        errors.extend(f"游戏档案: {message}" for message in GAME_PROFILE_ERRORS)
 
     files = {name: root / name for name in ("soul.md", "style.md", "sources.md")}
     for name, path in files.items():
@@ -827,8 +1007,8 @@ def main() -> int:
         if "TEMPLATE NOTE" in text:
             errors.append(f"{name}: 仍保留 TEMPLATE NOTE，请删除")
         if re.search(r"\bTODO\b", text, re.IGNORECASE):
-            errors.append(f"{name}: 仍存在 TODO")
-        if re.search(r"\[(Sxx|Exx|Ixx|Cxx)\]", text):
+            errors.append(f"{name}: 仍存在 TODO（未执行/未评分标记必须清除）")
+        if re.search(r"\[(S|E|I|C)xx\]", text):
             errors.append(f"{name}: 仍存在未编号的示例引用（如 [Sxx]）")
 
     soul_fm, style_fm, sources_fm = fms["soul.md"], fms["style.md"], fms["sources.md"]
@@ -853,8 +1033,15 @@ def main() -> int:
     for name, fm in (("soul.md", soul_fm), ("style.md", style_fm), ("sources.md", sources_fm)):
         if fm.get("document") and fm["document"] != name.split(".")[0]:
             errors.append(f"{name}: document 应为 {name.split('.')[0]}")
-        if fm.get("game") and fm["game"] not in ALLOWED_GAMES:
-            errors.append(f"{name}: 不支持的游戏名 '{fm['game']}'")
+        pack = pack_for_game(fm.get("game"))
+        if fm.get("game") and not pack:
+            errors.append(
+                f"{name}: 不支持的游戏名 '{fm['game']}'；请在 references/games/ 添加游戏档案"
+            )
+        if pack and fm.get("game_slug") and fm["game_slug"] != pack.get("id"):
+            errors.append(
+                f"{name}: game_slug '{fm['game_slug']}' 与游戏档案 id '{pack.get('id')}' 不一致"
+            )
         if fm.get("research_depth") and fm["research_depth"] not in ALLOWED_DEPTHS:
             errors.append(f"{name}: research_depth 必须是 quick/standard/deep")
 
@@ -864,11 +1051,18 @@ def main() -> int:
         errors.append("soul.md: primary_language 必须是 zh-CN")
     if soul_fm.get("content_rating") != "全年龄+轻度浪漫":
         errors.append("soul.md: content_rating 必须是 全年龄+轻度浪漫")
-    if soul_fm.get("target_user") not in ALLOWED_USERS:
-        errors.append("soul.md: target_user 必须是 旅行者/开拓者/绳匠/漂泊者")
-    expected = EXPECTED_USER.get(soul_fm.get("game", ""))
-    if expected and soul_fm.get("target_user") != expected:
-        errors.append(f"soul.md: 游戏「{soul_fm.get('game')}」的主角称号应为「{expected}」")
+    soul_pack = pack_for_game(soul_fm.get("game"))
+    if soul_pack:
+        protagonist = soul_pack.get("protagonist", {})
+        mode = protagonist.get("mode", "fixed")
+        allowed_titles = protagonist.get("allowed_titles", [])
+        target_user = soul_fm.get("target_user")
+        if mode == "custom":
+            if not target_user:
+                errors.append("soul.md: custom 主角模式必须填写 target_user")
+        elif target_user not in allowed_titles:
+            expected = protagonist.get("default_title") or "、".join(allowed_titles)
+            errors.append(f"soul.md: 游戏「{soul_fm.get('game')}」的主角称号应为「{expected}」")
     if style_fm.get("primary_language") != "zh-CN":
         errors.append("style.md: primary_language 必须是 zh-CN")
     if sources_fm.get("overall_result") not in ALLOWED_RESULTS:
@@ -884,12 +1078,25 @@ def main() -> int:
         )
 
     char = soul_fm.get("character")
-    game = soul_fm.get("game")
+    soul_game = soul_pack.get("id") if soul_pack else soul_fm.get("game", "")
     for name, fm in (("style.md", style_fm), ("sources.md", sources_fm)):
         if fm.get("character") != char:
             errors.append(f"{name}: character 与 soul.md 不一致")
-        if fm.get("game") != game:
+        pack = pack_for_game(fm.get("game"))
+        other_game = pack.get("id") if pack else fm.get("game", "")
+        if other_game != soul_game:
             errors.append(f"{name}: game 与 soul.md 不一致")
+
+    depths = {
+        "soul": soul_fm.get("research_depth"),
+        "style": style_fm.get("research_depth"),
+        "sources": sources_fm.get("research_depth"),
+    }
+    if all(depths.values()) and len(set(depths.values())) > 1:
+        errors.append(
+            "research_depth 在三份文档中不一致："
+            f"soul={depths['soul']}, style={depths['style']}, sources={depths['sources']}"
+        )
 
     for name, required in (
         ("soul.md", SOUL_REQUIRED),
@@ -1060,6 +1267,16 @@ def main() -> int:
         errors.extend(text_errors)
     else:
         warnings.extend(text_errors)
+    translation_pack = pack_for_game(sources_fm.get("game"))
+    translation_needed = translation_required(translation_pack, fms)
+    errors.extend(validate_translation_metadata(fms, translation_pack))
+    errors.extend(
+        validate_translation_consistency(
+            bodies["sources.md"],
+            bodies["style.md"],
+            translation_needed,
+        )
+    )
     matrix_errors, matrix_warnings = validate_matrix_usage(
         bodies["soul.md"], bodies["style.md"], bodies["sources.md"]
     )
@@ -1076,7 +1293,10 @@ def main() -> int:
     errors.extend(score_errors)
     warnings.extend(score_warnings)
     quote_errors, quote_warnings = validate_quote_quota(
-        bodies["style.md"], bodies["sources.md"], strict_mode
+        bodies["style.md"],
+        bodies["sources.md"],
+        strict_mode,
+        translation_needed,
     )
     errors.extend(quote_errors)
     warnings.extend(quote_warnings)

@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "id": "wuwa",
+  "status": "curated",
+  "display_name": "鸣潮",
+  "aliases": ["鸣潮", "WuWa", "Wuthering Waves"],
+  "game_field": "鸣潮",
+  "directory": "鸣潮",
+  "source_profile": "references/sources/wuwa.md",
+  "source_landscape": "A",
+  "source_landscape_notes": "官方中文共鸣者情报/公告/PV + 社区 Wiki 转录；官方没有角色故事/语音文本页。",
+  "languages": {
+    "official": ["zh-CN"],
+    "output": "zh-CN",
+    "official_zh": true,
+    "translation_policy": "none"
+  },
+  "protagonist": {
+    "mode": "fixed",
+    "default_title": "漂泊者",
+    "allowed_titles": ["漂泊者"],
+    "gender_neutral": true
+  },
+  "canon": {
+    "type": "live_service"
+  },
+  "content": {
+    "rating": "全年龄+轻度浪漫"
+  },
+  "verification": {
+    "s1_required_for_core": true,
+    "cross_check": 2,
+    "coverage_labels": ["partial", "community-only", "derived"],
+    "default_depth": "standard"
+  },
+  "known_pitfalls": [
+    "官方没有角色故事/语音文本页，角色故事与主线全流程依赖社区转录",
+    "官网为 SPA，角色情报需浏览器"
+  ]
+}

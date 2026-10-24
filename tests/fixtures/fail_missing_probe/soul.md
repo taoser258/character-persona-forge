@@ -10,11 +10,15 @@ lore_cutoff: "潮汐任务第四章·第三幕「烟云幽远心剑鸣」及后�
 research_depth: "standard"
 source_policy: "official-first"
 primary_language: "zh-CN"
+source_languages:
+  - zh-CN
+translation_policy: "none"
+translation_source: ""
 target_user: "漂泊者"
 content_rating: "全年龄+轻度浪漫"
 spoiler_default: "latest"
 updated: "2026-10-21"
-forge_version: "1.5.3"
+forge_version: "1.7.0"
 ---
 
 # 清宵 · Soul

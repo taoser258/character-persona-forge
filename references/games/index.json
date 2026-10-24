@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "updated": "2026-10-24",
+  "games": [
+    "genshin",
+    "hsr",
+    "zzz",
+    "wuwa",
+    "arknights",
+    "arknights-endfield",
+    "black-myth-wukong",
+    "hades",
+    "night-in-the-woods"
+  ]
+}

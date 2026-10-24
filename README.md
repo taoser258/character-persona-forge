@@ -2,10 +2,10 @@
 
 [English](README.en.md) | **简体中文**
 
-[![Version](https://img.shields.io/badge/version-1.5.3-blue.svg)](#)
+[![Version](https://img.shields.io/badge/version-1.7.0-blue.svg)](#)
 [![License: CC BY-NC-SA 4.0](https://img.shields.io/badge/License-CC%20BY--NC--SA%204.0-lightgrey.svg)](LICENSE)
 [![Python 3.9+](https://img.shields.io/badge/Python-3.9%2B-3776AB.svg)](https://www.python.org/)
-[![selftest](https://img.shields.io/badge/selftest-23%2F23-brightgreen.svg)](#验证与自检)
+[![selftest](https://img.shields.io/badge/selftest-27%2F27-brightgreen.svg)](#验证与自检)
 
 > 把游戏角色编译成**可审阅、可注入、可验证**的人格文档。
 
@@ -13,8 +13,8 @@
 
 它不是“让模型自由发挥一段角色扮演提示词”，而是一套有开工闸门、来源账本、机器校验和行为验收的文档生产流程。生成出来的文件既可以只取 CORE 区直接注入，也可以保留完整附录供以后更新和审计。
 
-> **当前内置支持范围：** 《原神》《崩坏：星穹铁道》《绝区零》《鸣潮》。
-> 这不是能力上限：来源系统按游戏拆分，新增游戏只需增加 `references/sources/<game>.md` 与注册项，核心流程、模板和校验器都可以复用。
+> **当前内置支持范围：** 《原神》《崩坏：星穹铁道》《绝区零》《鸣潮》《明日方舟》《明日方舟：终末地》，以及 provisional 试点《黑神话：悟空》《Hades》《Night in the Woods》。
+> 这不是能力上限：任意有可检索来源的游戏都可以按 `references/game-onboarding.md` 做来源发现与定级，用 `game-init` 生成 provisional Game Pack，再复用同一套核心流程、模板和校验器。
 
 ---
 
@@ -70,7 +70,7 @@ personas/<游戏>/<角色>/
 | `style.md` | 我怎么说、什么时候说多少、哪些表达不像我 | 是（CORE） | 语言指纹、分场景语体、官方语料、示例、风格红线 |
 | `sources.md` | 上面的结论从哪里来、哪些是推断、还有哪些缺口 | 否 | 审计档，用于核查、更新和复现；不要贴给聊天 agent |
 
-> 生成产物默认全中文：官方中文优先，术语、称呼与语体以中文原文为准；本 README 提供中英双语版本。
+> 生成产物默认全中文：官方中文优先，术语、称呼与语体以中文原文为准；官方只有非中文时，原文与中文译文分列，引用标“译文”，不冒充官方中文原句。本 README 提供中英双语版本。
 
 `soul.md` 与 `style.md` 都分为 **CORE** 与 **APPENDIX**：
 
@@ -127,7 +127,7 @@ personas/<游戏>/<角色>/
 
 规则的重点不是“多抓”，而是“抓得可核查”：
 
-- **官方中文优先。** 其他语言官方本地化只用于理解语气差异，不直接搬入翻译腔。
+- **官方中文优先。** 官方只有非中文时，E 表保留原文 + 中文译文，引用标“译文”，不把译文写成官方中文原句；其他语言本地化只用于理解语气差异，不直接搬入翻译腔。
 - **最新正式上线内容优先。** 官方吃书时以最新版本为准，同时记录旧说法；泄露和测试服内容一律不用。
 - **标准档关键结论至少两个独立来源交叉核对。** 同一 Wiki 的两个页面不算两个独立来源。
 - **视频没有逐字字幕时，不得引用带引号的台词。** 只能用简介中的官方事实，或标注“字幕未取得/非逐字”。
@@ -238,7 +238,7 @@ python scripts/validate_persona.py personas/<游戏>/<角色> --strict --explain
 - 12 个 OOC 探针与 10 个对抗性探针的分数是否合法、是否达到平均线、关键项是否触底。
 - 是否出现绝对否定 AI 身份、未替换占位符、模板注释、引用配额超限等关键失败。
 
-`scripts/selftest.py` 则校验校验器本身：2 个正例 + 4 个反例 + 解析/JSON/CONDITIONAL/输出守卫/8.7/forge/预算/E 一致性等回归，目前 **23/23**。新增一条规则时，必须同时补一个反例或回归检查，否则视为“文档写了、脚本没查”。
+`scripts/selftest.py` 则校验校验器本身：2 个正例 + 5 个反例 + Game Pack / `game-init` / 非中文译文 / 非中文 quote 配额 / research_depth 一致性 / 解析/JSON/CONDITIONAL/输出守卫/8.7/forge/预算/E 一致性等回归，目前 **29/29**。新增一条规则时，必须同时补一个反例或回归检查，否则视为“文档写了、脚本没查”。
 
 ### 7. 行为验收：冷启动 + 12 + 10 探针
 
@@ -455,7 +455,15 @@ IN_CHARACTER（自动回归）
 
 ### 最小可用流程
 
-如果你只想尽快把一份现成的人格文档用起来：
+**普通用户：三步开始**
+
+1. 生成一键复制包：`python scripts/persona_tools.py pack personas/<游戏>/<角色>`，打开生成的 `injection.md`，全选复制。
+2. 新建一个 AI 对话，把内容粘贴到它的“自定义指令 / 角色设定 / 系统提示”；找不到入口就直接作为第一条消息发送。
+3. 开始聊天。想退出角色说“出戏”，想回来再说“回到角色”。
+
+不需要理解 CORE、不需要运行校验命令；`sources.md` 不要发给 AI。聊几轮后如果变回助手，发一句“继续以这个角色的身份说话，不要用助手腔”。
+
+**进阶用户：**
 
 1. **新开一个会话**，不要接着旧对话。
 2. 把身份指令 + `soul.md` 的 CORE + `style.md` 的 CORE 放进系统提示词/自定义指令；上下文不够时至少放身份指令 + soul CORE。
@@ -496,8 +504,15 @@ IN_CHARACTER（自动回归）
 | 崩坏：星穹铁道 / Honkai: Star Rail | 支持 | `references/sources/hsr.md` |
 | 绝区零 / Zenless Zone Zero | 支持 | `references/sources/zzz.md` |
 | 鸣潮 / Wuthering Waves | 支持 | `references/sources/wuwa.md` |
+| 明日方舟 / Arknights | 支持 | `references/sources/arknights.md` |
+| 明日方舟：终末地 / Arknights: Endfield | 支持 | `references/sources/arknights-endfield.md` |
+| 黑神话：悟空 / Black Myth: Wukong | provisional 试点 | `references/sources/black-myth-wukong.md` |
+| Hades / 哈迪斯 | provisional，P2 验收 | `references/sources/hades.md` |
+| Night in the Woods / 林中之夜 | provisional，P2 社区译文验收 | `references/sources/night-in-the-woods.md` |
 
-新增游戏不需要改核心人格方法论：增加来源档案、更新注册表和校验器常量即可。详见[新增游戏](#新增游戏)。
+《明日方舟》的使用者称号为“博士”；《明日方舟：终末地》为“管理员”；《黑神话：悟空》为“天命人”；《Hades》为“Zagreus”；《Night in the Woods》为“Mae”。各作来源与记忆边界分开，不因同 IP 或同系列自动共享经历。
+
+新增游戏不需要改核心人格方法论：先按 `references/game-onboarding.md` 做来源发现与 A/B/C/D/E 定级，再用 `game-init` 生成 pack、补来源档案、过 `game-check`。详见[新增游戏](#新增游戏)。
 
 ---
 
@@ -567,8 +582,13 @@ Use Skill: character-persona-forge
 要求 Python 3.9+，全部脚本只用标准库。
 
 ```bash
-# 1. 校验器自身回归
+# 0. 新游戏接入（可选）
+python scripts/game_profile.py init --id <id> --display-name "<展示名>" --title "<主角称号>" --landscape <A/B/C/D/E>
+python scripts/game_profile.py game-check <id>
+
+# 1. 校验器与游戏档案回归
 python scripts/selftest.py
+python scripts/game_profile.py check
 
 # 2. 生成期辅助：分章预算 / E 落点 / 矩阵 stub
 python scripts/persona_tools.py check personas/<游戏>/<角色>
@@ -577,10 +597,14 @@ python scripts/persona_tools.py check personas/<游戏>/<角色>
 python scripts/validate_persona.py personas/<游戏>/<角色> --strict --explain
 ```
 
+`matrix-preview` 会逐章显示从正文实际引用得到的来源集合、S1/社区计数与覆盖状态；计数包括章节直接引用的 S、E 在 §4 对应的 S、I 在 §5 依据中对应的 S，并按 ID 去重。请人工确认这些来源确实支撑该章结论。
+
 常用子命令：
 
 ```bash
 python scripts/persona_tools.py budget personas/<游戏>/<角色>
+python scripts/persona_tools.py matrix-preview personas/<游戏>/<角色>
+python scripts/persona_tools.py pack personas/<游戏>/<角色>
 python scripts/persona_tools.py evidence-map personas/<游戏>/<角色>
 python scripts/persona_tools.py matrix-stub personas/<游戏>/<角色>
 python scripts/probe_harness.py gen-prompts personas/<游戏>/<角色> --out-dir research/probe
@@ -629,6 +653,7 @@ python scripts/check_output.py reply.md
 │   ├── quality-rubric.md
 │   ├── runtime-integration.md
 │   ├── adversarial-probes.md
+│   ├── games/                # 机器可读游戏档案（index.json + <id>.json）
 │   └── sources/              # 按游戏拆分的来源档案
 ├── assets/
 │   ├── templates/            # standard + quick 模板
@@ -648,15 +673,31 @@ python scripts/check_output.py reply.md
 
 ## 新增游戏
 
-当前内置四款游戏，但架构按“可扩展来源档案”设计：
+当前内置六款 curated 游戏 + 三款 provisional 试点（黑神话：悟空、Hades、Night in the Woods），但架构按“Game Pack”设计。任意游戏都走同一接入闸门，不要跳过来源发现直接写人格文档：
 
-1. 新增 `references/sources/<game>.md`：官方入口、缺口、检索式、社区补缺、SPA/反爬备注。
-2. 更新 `references/source-registry.md` 索引。
-3. 更新 `SKILL.md` 的游戏输入表与主角称号。
-4. 更新 `scripts/validate_persona.py` 的 `ALLOWED_GAMES`、`EXPECTED_USER`。
-5. 更新 README 的“当前支持的游戏”。
-6. 如术语/主角称号不同，补一个 fixture 或示例。
-7. 运行 `python scripts/selftest.py`。
+1. **来源发现与定级**：按 `references/game-onboarding.md` 查官方站、发行页、官方社媒、社区 Wiki 与可达性，定 A/B/C/D/E，并让用户确认深度。
+2. **生成 provisional pack**：
+
+   ```bash
+   python scripts/game_profile.py init \
+     --id black-myth-wukong \
+     --display-name "黑神话：悟空" \
+     --title "天命人" \
+     --alias "黑神话悟空" \
+     --landscape A \
+     --canon complete
+   ```
+
+   同时会生成 `references/sources/<id>.md` 骨架并更新 `index.json`。
+3. **补全来源档案**：官方入口、可得内容、缺口、检索式、社区补缺、取证陷阱；清掉 `TODO`。
+4. **过闸门**：`python scripts/game_profile.py game-check <id>` 返回 `READY`；用户确认接入信息后把 `status` 改为 `curated`。
+5. **回归**：运行 `python scripts/game_profile.py check` 与 `python scripts/selftest.py`。
+
+v1.7 只支持固定主角与连载/完结线性正典；可选/自定义/群像主角、多路线、重制、EA、沙盒字段已预留，暂不支持。D 级只做 quick 且需用户显式接受 CONDITIONAL；E 级拒绝生成。
+
+> **来源地形是游戏级，不是角色级。** 一个 A 级游戏也可能没有目标角色的官方角色页或可逐字台词。开工前必须按 `game-onboarding.md` §3.1 做角色级 S1 探测；角色级 S1=0 时用 quick，或在 standard 中如实标 `partial` / `community-only` / `derived`，不要用官网首页或无关公告凑 S1。
+
+> **官方文本不是中文时：** `sources.md` §4 与 `style.md` §3/附录最后一列写中文译文，原文列保留原语言原句；三份 frontmatter 填 `source_languages` / `translation_policy` / `translation_source`。引用写“译文”，不把社区译文说成官方中文原句。
 
 ---
 
@@ -687,7 +728,8 @@ python scripts/check_output.py reply.md
 
 - **禁止商业使用**；如需商业授权，请联系维护者。
 - 游戏角色、名称、官方台词与设定版权归原权利方所有。
-- 本仓库是粉丝制作的工作流工具，与 HoYoverse、miHoYo、Kuro Games 无隶属或背书关系。
+- 本仓库是粉丝制作的工作流工具，与 HoYoverse、miHoYo、Kuro Games、Hypergryph（鹰角网络）、Supergiant Games、Infinite Fall、Finji 无隶属或背书关系。
+- 第三方社区转录来源与许可见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)；仓库不打包剧本、字幕或语音原文。
 - 引用官方内容仅用于评论、研究与风格校准，请遵守来源站点条款，避免批量抓取。
 - 生成文档用于个人非商业角色扮演；发布到公开平台前请自行确认当地法律与平台规则。
 

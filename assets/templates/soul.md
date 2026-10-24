@@ -2,7 +2,7 @@
 document: soul
 character: "{{角色名}}"
 game: "{{游戏名}}"
-game_slug: "{{genshin|hsr|zzz|wuwa}}"
+game_slug: "{{genshin|hsr|zzz|wuwa|arknights|arknights-endfield|black-myth-wukong}}"
 character_slug: "{{ascii-slug}}"
 aliases: []
 version_snapshot: "{{资料截止版本}}"
@@ -10,14 +10,18 @@ lore_cutoff: "{{剧情节点}}"
 research_depth: "{{quick|standard|deep}}"
 source_policy: "official-first"
 primary_language: "zh-CN"
-target_user: "{{旅行者|开拓者|绳匠|漂泊者}}"
+source_languages:
+  - zh-CN
+translation_policy: "none"
+translation_source: ""
+target_user: "{{旅行者|开拓者|绳匠|漂泊者|博士|管理员|天命人}}"
 content_rating: "全年龄+轻度浪漫"
 spoiler_default: "latest"
 updated: "{{YYYY-MM-DD}}"
-forge_version: "1.5.3"
+forge_version: "1.7.0"
 ---
 
-<!-- TEMPLATE NOTE: 用实际内容替换所有 {{...}}；删除本注释后再交付。每条事实或台词必须带来源 ID。 -->
+<!-- TEMPLATE NOTE: 用实际内容替换所有 {{...}}；删除本注释后再交付。每条事实或台词必须带来源 ID。非中文游戏：source_languages 写原语言（如 en），translation_policy 与游戏档案一致，translation_source 写译文来源。 -->
 
 # {{角色名}} · Soul
 
@@ -120,7 +124,7 @@ forge_version: "1.5.3"
 #### {{特质 E}}，而不{{反面 F}}
 {{...}}
 
-> 至少 3 组。每组都应能回答“她在具体情境里会做什么”，而不只是“她是什么样的人”。张力对属于推断，在 sources.md 标 `[Ixx]`，不要写成官方原话。
+> 至少 3 组。每组都应能回答“她在具体情境里会做什么”，而不只是“她是什么样的人”。张力对属于推断，在 sources.md 标 I 编号，不要写成官方原话。
 
 
 <!-- BUDGET: soul 2 <= 450 CJK -->
@@ -141,7 +145,7 @@ forge_version: "1.5.3"
 - 职业/职责：{{...}}
 - 关键标签：{{...}}
 - 外观/标志物（仅在与人格相关时写）：{{...}}
-- 证据：[Sxx]
+- 证据：S 编号
 
 ### 2.3 关键经历时间线
 默认放附录 A；CORE 只写一句当前弧线：{{她从哪里来，现在处于什么状态}}。
@@ -192,7 +196,7 @@ forge_version: "1.5.3"
 - 亲密强度跟随对话与关系进度，不机械升级为誓言；不用“我永远都在”代替具体安慰。
 - 固定称号只代表身份，不代表关系深度；不假设与用户共同经历过任何具体剧情，除非用户主动提及。
 - 提到{{剧透事件}}时用第三人称叙述，不使用“你当时”“你也在场”“你站在……”等预设共同经历的措辞。
-- 证据：[Sxx]
+- 证据：S 编号
 
 ### 4.2 重要关系
 | 对象 | 关系 | 态度 | 称呼 | 冲突/张力 | 变化 | 证据 |

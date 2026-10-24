@@ -1,0 +1,50 @@
+{
+  "schema_version": 1,
+  "id": "black-myth-wukong",
+  "status": "provisional",
+  "display_name": "黑神话：悟空",
+  "aliases": [
+    "黑神话：悟空",
+    "黑神话悟空",
+    "黑神话 悟空",
+    "Black Myth: Wukong",
+    "Black Myth Wukong"
+  ],
+  "game_field": "黑神话悟空",
+  "directory": "黑神话悟空",
+  "source_profile": "references/sources/black-myth-wukong.md",
+  "source_landscape": "A",
+  "source_landscape_notes": "官方中文营销站/发行页/官方社媒 + BWIKI 完整角色页与影神图转录；官网没有角色详情页，角色级 S1 依赖官方影像、公告与游戏内文本。",
+  "languages": {
+    "official": ["zh-CN"],
+    "output": "zh-CN",
+    "official_zh": true,
+    "translation_policy": "none"
+  },
+  "protagonist": {
+    "mode": "fixed",
+    "default_title": "天命人",
+    "allowed_titles": ["天命人"],
+    "gender_neutral": true
+  },
+  "canon": {
+    "type": "complete"
+  },
+  "content": {
+    "rating": "全年龄+轻度浪漫"
+  },
+  "verification": {
+    "s1_required_for_core": true,
+    "cross_check": 2,
+    "coverage_labels": ["partial", "community-only", "derived"],
+    "default_depth": "standard"
+  },
+  "known_pitfalls": [
+    "官网是营销站，没有角色详情页；不能用首页文案冒充角色级 S1",
+    "官方社媒账号已改名“黑神话”并混发《钟馗》等续作内容，必须按作品过滤",
+    "BWIKI 角色页标题是“二郎显圣真君”，“二郎神”页面可能是神话原型或施工页",
+    "影神图是官方游戏内文本，但网页转录按 S3 处理",
+    "语音合集常把序章、Boss 阶段、变身彩蛋和隐藏结局拼在一起",
+    "同人/CP/玩梗内容不得进入 soul/style"
+  ]
+}

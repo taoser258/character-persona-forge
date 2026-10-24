@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "id": "night-in-the-woods",
+  "status": "provisional",
+  "display_name": "Night in the Woods",
+  "aliases": [
+    "Night in the Woods",
+    "NITW",
+    "林中之夜"
+  ],
+  "game_field": "Night in the Woods",
+  "directory": "NightInTheWoods",
+  "source_profile": "references/sources/night-in-the-woods.md",
+  "source_landscape": "B",
+  "source_landscape_notes": "官方只有英文/日文，没有官方中文；有社区英文剧本转录与中文资料，角色级 S1 缺失，中文走 community_translation。",
+  "languages": {
+    "official": ["en", "ja"],
+    "output": "zh-CN",
+    "official_zh": false,
+    "translation_policy": "community_translation"
+  },
+  "protagonist": {
+    "mode": "fixed",
+    "default_title": "Mae",
+    "allowed_titles": ["Mae"],
+    "gender_neutral": false
+  },
+  "canon": {
+    "type": "complete"
+  },
+  "content": {
+    "rating": "全年龄+轻度浪漫"
+  },
+  "verification": {
+    "s1_required_for_core": true,
+    "cross_check": 2,
+    "coverage_labels": ["partial", "community-only", "derived"],
+    "default_depth": "standard"
+  },
+  "known_pitfalls": [
+    "官方没有中文，中文译文必须标 community_translation",
+    "GitHub 英文剧本是社区转录，未声明许可证，只引用短句",
+    "Bea 线与 Gregg 线是可选日常，不能默认玩家选 Bea 线",
+    "Fandom 与官网在本环境不可达",
+    "Casey、母亲去世、邪教与结局是重剧透"
+  ]
+}
